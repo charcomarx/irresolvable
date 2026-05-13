@@ -323,31 +323,43 @@ html,body{
     letter-spacing:1px;
   }
   #scorebox{
-    width:100px;
-    height:110px;
-    font-size:56px;
+    width:80px;
+    height:90px;
+    font-size:48px;
   }
   #buttons button{
-    width:80px;
-    height:70px;
-    font-size:36px;
+    width:70px;
+    height:60px;
+    font-size:28px;
   }
   #answerblock{
     column-count:2;
-    column-gap:8px;
+    column-gap:5px;
     column-fill:auto;
     overflow-y:auto;
     overflow-x:hidden;
     width:100%;
+    padding:0 4px 4px 4px;
   }
   .aline{
-    font-size:14px;
+    font-size:12px;
     white-space:normal;
     word-break:break-word;
     break-inside:avoid;
+    margin:1px 0;
   }
   #messagebox input{
     width:65%;
+  }
+  #highscore{
+    top:45px;
+    left:90px;
+    font-size:8px;
+  }
+  #highscoreNumber{
+    top:60px;
+    left:90px;
+    font-size:18px;
   }
 }
 </style>
@@ -631,12 +643,15 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-    if(score < 0){
-      tabLevel++;
-    } else {
-      score = -1;
-      tabLevel = 1;
-    }
+  if(score < 0){
+    tabLevel++;
+  } else {
+    score = -1;
+    tabLevel = 1;
+  }
+  
+  // Show tab shift immediately
+  renderPuzzle();
     
     if(tabLevel >= MAX_TABS){
       locked = true;
