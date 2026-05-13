@@ -204,52 +204,48 @@ var BAD = ['zx','qk','vk','bx','fv','jx','kz','xz','vj',
            'zw','zv','qx','qj','qz','xv','xw','xj','xk'];
 
 function makeImpossible(){
-  for(var att = 0; att < 800; att++){
+  while(true){ // ← guarantees success, no fallback needed
 
-    // 1. get a "rich" solvable pattern
+    // 1. start from a GOOD solvable pattern
     var base = makeSolvable();
-    if(!base || base.ans.length < 4) continue;
+    if(!base) continue;
+
+    // must feel ambiguous (important)
+    if(base.ans.length < 3) continue;
 
     var pat = base.pat.split('');
     var n = pat.length;
 
-    // 2. pick a position to corrupt
-    var i = Math.floor(Math.random()*n);
+    // 2. try small, believable mutations
+    for(var tries = 0; tries < 20; tries++){
 
-    // 3. try replacing with plausible letters
-    var letters = 'etaoinshrdlcumwfgypbvkjxqz';
-
-    for(var j=0;j<letters.length;j++){
       var test = pat.slice();
 
-      // replace underscore OR fixed letter
-      test[i] = letters[j].toUpperCase();
+      // pick a position that is NOT blank
+      var idxs = [];
+      for(var i=0;i<n;i++){
+        if(test[i] !== '_') idxs.push(i);
+      }
+      if(idxs.length === 0) continue;
 
-      var str = test.join('');
+      var idx = idxs[Math.floor(Math.random()*idxs.length)];
 
-      // skip if unchanged
-      if(str === base.pat) continue;
+      // replace with COMMON letters only
+      var letters = 'ETAOINSHRDLU';
+      var newL = letters[Math.floor(Math.random()*letters.length)];
 
-      var ans = findAnswers(str);
+      if(test[idx] === newL) continue;
 
-      if(ans.length === 0){
+      test[idx] = newL;
 
-        // avoid obvious junk patterns
-        if(!/[qxz]{2}/i.test(str)){
-          return str;
-        }
+      var str = test.join('').toUpperCase();
+
+      // 3. ONLY accept if it truly has zero answers
+      if(findAnswers(str).length === 0){
+        return str;
       }
     }
   }
-
-  return makeImpossibleFallback();
-}
-
-function makeImpossibleFallback(){
-  // fallback: still try to look word-like
-  var seeds = ['_IGHT','_AME','_ORE','_INE','_EST'];
-  var s = seeds[Math.floor(Math.random()*seeds.length)];
-  return s.replace('_', 'Z'); // mild poison, still readable
 }
 
 function newPuzzle(){
