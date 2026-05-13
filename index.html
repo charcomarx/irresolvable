@@ -359,7 +359,8 @@ html,body{
 
 <!-- Score left -->
 <div id="scorebox">0</div>
-<div id="highscore" style="position:fixed; top:55px; left:110px; font-size:10px; color:#f66; font-weight:bold;">HIGH SCORE <span style="font-size:20px; color:#6f6;">0</span></div>
+<div id="highscore" style="position:fixed; top:55px; left:110px; font-size:10px; color:#f66; font-weight:bold;">HIGH SCORE</div>
+<div id="highscoreNumber" style="position:fixed; top:70px; left:110px; font-size:20px; color:#6f6; font-weight:bold;">0</div>
   <!-- Y/N buttons right -->
 <div id="buttons">
   <button id="btnY">Y</button>
@@ -441,7 +442,7 @@ var highScore = 0;
 function updateHighScore(){
   if(score > highScore){
     highScore = score;
-    document.getElementById('highscore').textContent = highScore;
+    document.getElementById('highscoreNumber').textContent = highScore;
   }
 }
 
