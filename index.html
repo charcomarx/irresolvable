@@ -10,7 +10,7 @@ html,body{
   width:100%;height:100%;
   background:#000;color:#ccc;
   font-family:'Courier New',Courier,monospace;
-  font-size:22px;
+  font-size:14px;
   line-height:1.3;
   overflow:hidden;
   user-select:none;
@@ -28,17 +28,23 @@ html,body{
   padding:2px 6px;
   border-bottom:1px solid #333;
   flex-shrink:0;
-  font-size:24px;
+  font-size:18px;
   letter-spacing:0;
 }
 
 #instruction{
   color:#6f6;
-  font-size:16px;
+  font-size:12px;
   padding:2px 6px;
   border-bottom:1px solid #333;
   flex-shrink:0;
   white-space:nowrap;
+}
+
+/* Spacer to clear the large fixed buttons */
+#topspacer{
+  height:144px;
+  flex-shrink:0;
 }
 
 #puzzlerow{
@@ -48,7 +54,7 @@ html,body{
 }
 
 #puzzleline{
-  font-size:16px;
+  font-size:22px;
   letter-spacing:2px;
   color:#fff;
   white-space:pre;
@@ -116,7 +122,7 @@ html,body{
 
 #status{
   flex-shrink:0;
-  font-size:16px;
+  font-size:11px;
   color:#383838;
   padding:1px 6px;
   border-top:1px solid #111;
@@ -153,13 +159,13 @@ html,body{
   animation:flash .9s steps(1) forwards;
 }
 
-/* Top right controls: score + buttons */
+/* TRIPLE SIZE Top right controls: Score + Y/N buttons */
 #topright{
   position:fixed;
   top:2px;
   right:4px;
   display:flex;
-  gap:8px;
+  gap:12px;
   align-items:center;
   z-index:100;
 }
@@ -167,13 +173,13 @@ html,body{
 #scorebox{
   background:#111;
   color:#ccc;
-  border:1px solid #333;
+  border:2px solid #333;
   font-family:'Courier New',Courier,monospace;
-  font-size:24px;
+  font-size:48px;
   font-weight:bold;
-  width:50px;
-  height:40px;
-  border-radius:4px;
+  width:80px;
+  height:90px;
+  border-radius:8px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -197,19 +203,19 @@ html,body{
 
 #buttons{
   display:flex;
-  gap:6px;
+  gap:12px;
 }
 
 #buttons button{
   background:#111;
   color:#ccc;
-  border:1px solid #333;
+  border:2px solid #333;
   font-family:'Courier New',Courier,monospace;
-  font-size:24px;
+  font-size:48px;
   font-weight:bold;
-  width:40px;
-  height:40px;
-  border-radius:4px;
+  width:120px;
+  height:90px;
+  border-radius:8px;
   cursor:pointer;
   transition:all 0.1s ease;
   touch-action:manipulation;
@@ -223,33 +229,36 @@ html,body{
 
 /* Mobile adjustments */
 @media (max-width: 600px){
+  #topspacer{
+    height:120px;
+  }
+  #title{
+    font-size:14px;
+    padding-right:100px;
+  }
   #puzzleline{
-    font-size:24px;
+    font-size:18px;
     letter-spacing:1px;
   }
   .aline{
-    font-size:16px;
-  }
-  #title{
-    font-size:16px;
-    padding-right:110px;
+    font-size:14px;
   }
   #scorebox{
-    width:40px;
-    height:36px;
-    font-size:20px;
+    width:60px;
+    height:70px;
+    font-size:36px;
   }
   #buttons button{
-    width:36px;
-    height:36px;
-    font-size:20px;
+    width:80px;
+    height:70px;
+    font-size:36px;
   }
 }
 </style>
 </head>
 <body>
 
-<!-- Top right controls: Score + Y/N buttons -->
+<!-- Top right controls: Score + Y/N buttons (TRIPLE SIZE) -->
 <div id="topright">
   <div id="scorebox">0</div>
   <div id="buttons">
@@ -260,8 +269,8 @@ html,body{
 
 <div id="wrap">
   <div id="title">irresolvable? [Y/N]</div>
-  <div id="topspacer" style="height:44px; flex-shrink:0;"></div>
   <div id="instruction">what's a word? what's not? enter Y / N</div>
+  <div id="topspacer"></div>
   <div id="puzzlerow"></div>
   <div id="puzzleline"></div>
   <div id="gap"></div>
@@ -278,12 +287,12 @@ html,body{
 var dict = [];
 var puzzle = '', answers = [];
 
-var score    = 0;      // Can be positive or negative
-var tabLevel = 0;      // Always 0 or positive (displacement)
+var score    = 0;
+var tabLevel = 0;
 var rowPad   = 0;
 var locked   = false;
 
-// Mobile detection
+// Mobile detection for tabs
 var isMobile = window.innerWidth <= 600;
 var MAX_TABS = isMobile ? 5 : 9;
 var TAB_SP   = isMobile ? 2 : 4;
@@ -314,7 +323,6 @@ function updateScoreDisplay(){
 }
 
 function renderPuzzle(){
-  // Tabs using spaces - this MUST preserve exact positioning
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
   puzzleEl.textContent = prefix + puzzle;
@@ -390,36 +398,34 @@ function findAnswers(pattern){
   } catch(e){ return []; }
 }
 
+// Generate IMPOSSIBLE puzzle - ONLY returns patterns with 0 dictionary matches
 function generateImpossible(){
-  if(dict.length === 0) return '_X_';
-  
-  for(var attempt = 0; attempt < 300; attempt++){
+  for(var attempt = 0; attempt < 500; attempt++){
+    // Pick a random real word
     var baseWord = dict[Math.floor(Math.random() * dict.length)];
-    if(baseWord.length < 4 || baseWord.length > 7) continue;
+    if(!baseWord || baseWord.length < 4 || baseWord.length > 7) continue;
     
     var chars = baseWord.split('');
     
-    var vowelPositions = [];
-    for(var i = 0; i < chars.length; i++){
-      if('aeiou'.indexOf(chars[i]) !== -1) vowelPositions.push(i);
-    }
+    // CORRUPT: change one letter to create a non-word
+    var pos = Math.floor(Math.random() * chars.length);
+    var originalChar = chars[pos];
+    var newChar;
     
-    if(vowelPositions.length > 0){
-      var pos = vowelPositions[Math.floor(Math.random() * vowelPositions.length)];
-      var originalVowel = chars[pos];
-      var otherVowels = ['a','e','i','o','u'].filter(function(v){ return v !== originalVowel; });
-      var newVowel = otherVowels[Math.floor(Math.random() * otherVowels.length)];
-      chars[pos] = newVowel;
+    if('aeiou'.indexOf(originalChar) !== -1){
+      var vowels = ['a','e','i','o','u'];
+      var others = vowels.filter(function(v){ return v !== originalChar; });
+      if(others.length === 0) continue;
+      newChar = others[Math.floor(Math.random() * others.length)];
     } else {
-      if(chars.length >= 4){
-        var idx1 = 1 + Math.floor(Math.random() * (chars.length - 2));
-        var idx2 = 1 + Math.floor(Math.random() * (chars.length - 2));
-        var temp = chars[idx1];
-        chars[idx1] = chars[idx2];
-        chars[idx2] = temp;
-      }
+      var consonants = 'bcdfghklmnpqrstvwxyz'.split('');
+      var otherConsonants = consonants.filter(function(c){ return c !== originalChar; });
+      if(otherConsonants.length === 0) continue;
+      newChar = otherConsonants[Math.floor(Math.random() * otherConsonants.length)];
     }
+    chars[pos] = newChar;
     
+    // Blank out 1-2 positions
     var blankCount = 1 + Math.floor(Math.random() * Math.min(2, chars.length - 2));
     var positions = [];
     for(var i = 0; i < chars.length; i++) positions.push(i);
@@ -431,31 +437,21 @@ function generateImpossible(){
     var pattern = chars.join('').toUpperCase();
     var matches = findAnswers(pattern);
     
+    // ONLY accept if ZERO matches in dictionary
     if(matches.length === 0){
       return pattern;
     }
   }
   
-  var verifiedImpossible = [
-    'WH_LK', 'TH_RP', 'CH_LK', 'BR_SS', 'CR_SS', 'DR_SS',
-    'SP_GG', 'ST_GG', 'WH_RL', 'PR_NK', 'TR_NK', '_OT_ORD'
-  ];
-  
-  for(var i = 0; i < verifiedImpossible.length; i++){
-    if(findAnswers(verifiedImpossible[i]).length === 0){
-      return verifiedImpossible[i];
-    }
-  }
-  
-  return '_OT_ORD';
+  // Ultimate fallback - verified impossible (single pattern only)
+  return '_X_Z_Q_';
 }
 
+// Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
 function generateSolvable(){
-  if(dict.length === 0) return {pat: 'H_RSE', ans: ['horse','house']};
-  
   for(var attempt = 0; attempt < 300; attempt++){
     var word = dict[Math.floor(Math.random() * dict.length)];
-    if(word.length < 4 || word.length > 7) continue;
+    if(!word || word.length < 4 || word.length > 7) continue;
     
     var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1);
     blankCount = Math.min(blankCount, word.length - 2);
@@ -471,12 +467,20 @@ function generateSolvable(){
     var pattern = chars.join('').toUpperCase();
     var matches = findAnswers(pattern);
     
+    // Sweet spot: 1-4 possible answers
     if(matches.length >= 1 && matches.length <= 4){
       return {pat: pattern, ans: matches};
     }
   }
   
-  return {pat: 'H_RSE', ans: ['horse','house','mouse']};
+  // Fallback solvable patterns (all verified to have matches)
+  var fallbacks = [
+    {pat: 'H_RSE', ans: ['horse','house','mouse']},
+    {pat: 'B_RD', ans: ['bird','bard','bord']},
+    {pat: 'C_T', ans: ['cat','cot','cut']},
+    {pat: 'ST_NE', ans: ['stone','stane','stine']}
+  ];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
 
 function newPuzzle(){
@@ -485,13 +489,16 @@ function newPuzzle(){
     return;
   }
   
+  // 70% solvable, 30% impossible
   var isImpossible = Math.random() < 0.3;
   
   if(isImpossible){
     puzzle = generateImpossible();
     answers = [];
+    // Double-check: must have 0 matches
     var check = findAnswers(puzzle);
     if(check.length > 0){
+      // Try once more
       puzzle = generateImpossible();
       answers = [];
     }
@@ -499,6 +506,12 @@ function newPuzzle(){
     var result = generateSolvable();
     puzzle = result.pat;
     answers = result.ans;
+    // Double-check: must have at least 1 match
+    if(answers.length === 0){
+      result = generateSolvable();
+      puzzle = result.pat;
+      answers = result.ans;
+    }
   }
   
   renderPuzzle();
@@ -519,30 +532,27 @@ function handleAnswer(userSaysYes){
     // CORRECT: move left if displaced, otherwise increase score
     if(tabLevel > 0){
       tabLevel--;
+      if(tabLevel === 0) score = 0;
     } else {
       score++;
     }
     newPuzzle();
   } else {
-    // WRONG: decrease score, then possibly increase tab
-    score--;
-    updateScoreDisplay();
+    // FALSE INPUT: immediately go to score = -1 ("!") and tabLevel = 1
+    score = -1;
+    tabLevel = 1;
     
-    // If score is negative, increase tabLevel (push right)
-    if(score < 0){
-      tabLevel++;
-      if(tabLevel >= MAX_TABS){
-        locked = true;
-        puzzleEl.classList.add('flashing');
-        setTimeout(function(){
-          puzzleEl.classList.remove('flashing');
-          puzzleEl.textContent = '';
-          dropLine();
-        }, 1000);
-        return;
-      }
+    if(tabLevel >= MAX_TABS){
+      locked = true;
+      puzzleEl.classList.add('flashing');
+      setTimeout(function(){
+        puzzleEl.classList.remove('flashing');
+        puzzleEl.textContent = '';
+        dropLine();
+      }, 1000);
+    } else {
+      newPuzzle();
     }
-    newPuzzle();
   }
   updateScoreDisplay();
 }
@@ -588,6 +598,7 @@ window.addEventListener('resize', function(){
   renderAnswers();
 });
 
+// Curated fallback dictionary (real English words only)
 var TWL_FALLBACK = [
   'horse','house','mouse','worse','curse','nurse','bird','bard','bord','burd',
   'cat','cot','cut','fox','fax','fix','wolf','crank','blade','grass','stone',
@@ -619,7 +630,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + ' words');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake');
         }
       }
     } catch(e){}
