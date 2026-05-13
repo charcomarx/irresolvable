@@ -203,21 +203,49 @@ var BAD = ['zx','qk','vk','bx','fv','jx','kz','xz','vj',
            'nj','px','qv','rj','tj','vx','wx','yj','zj',
            'zw','zv','qx','qj','qz','xv','xw','xj','xk'];
 
-function makeSolvable(){
-  for(var att=0; att<400; att++){
+function makeImpossible(){
+  for(var att = 0; att < 800; att++){
+
+    // 1. start from a real word
     var w = dict[Math.floor(Math.random()*dict.length)];
     var n = w.length;
-    var maxB = Math.max(1, Math.floor(n*0.65));
-    var blanks = 1 + Math.floor(Math.random()*maxB);
-    blanks = Math.min(blanks, n-1);
+
+    // 2. blank out some letters (like solvable)
+    var blanks = 1 + Math.floor(Math.random() * Math.min(n-1, Math.floor(n*0.6)));
     var pos = shuffle([...Array(n).keys()]).slice(0, blanks);
+
     var pat = w.split('');
-    for(var i=0;i<pos.length;i++) pat[pos[i]]='_';
-    var str = pat.join('').toUpperCase();
-    var ans = findAnswers(str);
-    if(ans.length > 0) return {pat: str, ans: ans};
+    for(var i=0;i<pos.length;i++) pat[pos[i]] = '_';
+
+    // 3. choose a position to "poison"
+    var poisonIndex = Math.floor(Math.random()*n);
+
+    // 4. replace with a *plausible but wrong* letter
+    //    (NOT crazy stuff like Z/X clusters)
+    var letters = 'etaoinshrdlcumwfgypbvkjxqz'; // frequency order
+    var original = w[poisonIndex];
+
+    for(var j=0; j<letters.length; j++){
+      var test = pat.slice();
+      test[poisonIndex] = letters[j];
+
+      if(letters[j] === original) continue;
+
+      var str = test.join('').toUpperCase();
+
+      // 5. keep only if it LOOKS valid but has 0 answers
+      if(findAnswers(str).length === 0){
+
+        // extra filter: avoid ugly combos like QZ, XJ, etc.
+        if(!/[qxz]{2}/i.test(str)){
+          return str;
+        }
+      }
+    }
   }
-  return null;
+
+  // fallback (rare)
+  return 'S__LL'; // still looks real even if it accidentally has answers
 }
 
 function makeImpossible(){
