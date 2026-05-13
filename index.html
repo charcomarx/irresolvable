@@ -16,39 +16,39 @@ html,body{
 #wrap{display:flex;flex-direction:column;width:100%;height:100%}
 
 #title{
-  color:#fff;
-  white-space:pre;
+  color:#fff;white-space:pre;
   padding:2px 6px;
   border-bottom:1px solid #333;
-  flex-shrink:0;
-  letter-spacing:1px;
+  flex-shrink:0;letter-spacing:1px;
 }
 
-/* puzzle sits just below title, no spacer */
-#puzzleline{
+/* puzzle row — offset by rowPad blank lines below title */
+#puzzlerow{
   flex-shrink:0;
-  font-size:16px;
-  letter-spacing:3px;
-  color:#fff;
   white-space:pre;
+}
+#puzzleline{
+  font-size:16px;letter-spacing:3px;
+  color:#fff;white-space:pre;
   padding:4px 6px 2px 6px;
   min-height:24px;
 }
 
-/* gap between puzzle and answer list — this is the "halfway" space */
 #gap{flex:1}
 
-/* answer list anchored to bottom half */
+/* answer list — offset by same rowPad */
+#answerrow{
+  flex-shrink:0;
+  white-space:pre;
+}
 #answerblock{
   flex-shrink:0;
   padding:0 6px 4px 6px;
   overflow:hidden;
 }
 .aline{
-  color:#6f6;
-  font-size:14px;
-  white-space:pre;
-  line-height:1.4;
+  color:#6f6;font-size:14px;
+  white-space:pre;line-height:1.4;
 }
 
 #status{
@@ -69,8 +69,10 @@ html,body{
 <body>
 <div id="wrap">
   <div id="title">irresolvable? [Y/N]</div>
+  <div id="puzzlerow"></div>
   <div id="puzzleline"></div>
   <div id="gap"></div>
+  <div id="answerrow"></div>
   <div id="answerblock"></div>
   <div id="status">loading...</div>
 </div>
@@ -79,23 +81,48 @@ html,body{
 <script>
 var dict = [], dictSet = new Set();
 var puzzle = '', answers = [];
-var score = 0, tabLevel = 0, titlePad = 0, locked = false;
-var MAX_TABS = 9, TAB_SP = 4;
+
+// Scoring model:
+//   score > 0  : positive buffer, shown as "+N", tab=0
+//   score = 0  : rest, no number shown, tab=0
+//   score = -1 : shown as "-1" at tab=0 (one warning before displacement)
+//   tab > 0    : displaced right, no number shown
+//   tab < 0    : (not used, clamp at 0)
+
+var score    = 0;   // integer, can be positive or -1 at tab=0
+var tabLevel = 0;   // displacement steps right (0=left)
+var rowPad   = 0;   // blank lines added below title (and above answer list)
+var locked   = false;
+
+var MAX_TABS = 9;
+var TAB_SP   = 4;
 var answerHistory = [];
 
 var titleEl    = document.getElementById('title');
+var puzzleRowEl= document.getElementById('puzzlerow');
 var puzzleEl   = document.getElementById('puzzleline');
+var gapEl      = document.getElementById('gap');
+var answerRowEl= document.getElementById('answerrow');
 var answerEl   = document.getElementById('answerblock');
 var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
 
-// ── render ────────────────────────────────────────────────────
+// ── render puzzle ─────────────────────────────────────────────
 function renderPuzzle(){
   var prefix = ' '.repeat(tabLevel * TAB_SP);
-  var sc = score > 0 ? ' +' + score : '';
+  var sc = (tabLevel === 0 && score > 0) ? ' +' + score : '';
   puzzleEl.textContent = prefix + puzzle + sc;
 }
 
+// ── row padding (blank lines above puzzle and above answer list) ──
+function applyRowPad(){
+  // blank lines = rowPad newlines rendered as empty divs via white-space:pre
+  var pad = rowPad > 0 ? '\n'.repeat(rowPad) : '';
+  puzzleRowEl.textContent = pad;
+  answerRowEl.textContent = pad;
+}
+
+// ── answer list ───────────────────────────────────────────────
 function addAnswer(text, link){
   answerHistory.unshift({text: text, link: link || null});
   renderAnswers();
@@ -103,26 +130,26 @@ function addAnswer(text, link){
 
 function renderAnswers(){
   answerEl.innerHTML = '';
-  var gapEl = document.getElementById('gap');
-  var gapH = gapEl.clientHeight;
+  var gapH  = gapEl.clientHeight;
   var lineH = puzzleEl.clientHeight || 22;
-  var max = Math.max(1, Math.floor(gapH / lineH));
-  var show = answerHistory.slice(0, max);
+  var max   = Math.max(1, Math.floor(gapH / lineH));
+  var show  = answerHistory.slice(0, max);
   for(var i = 0; i < show.length; i++){
+    var entry = show[i];
     var d = document.createElement('div');
     d.className = 'aline';
-    if(show[i].link){
+    if(entry.link){
       var a = document.createElement('a');
-      a.href = show[i].link;
+      a.href = entry.link;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.textContent = show[i].text;
+      a.textContent = entry.text;
       a.style.cssText = 'color:#6f6;text-decoration:none;border-bottom:1px solid #3a3;';
-      a.addEventListener('mouseover', function(){ this.style.color='#aff'; });
-      a.addEventListener('mouseout',  function(){ this.style.color='#6f6'; });
+      a.onmouseover = function(){ this.style.color='#aff'; };
+      a.onmouseout  = function(){ this.style.color='#6f6'; };
       d.appendChild(a);
     } else {
-      d.textContent = show[i].text;
+      d.textContent = entry.text;
     }
     answerEl.appendChild(d);
   }
@@ -130,7 +157,7 @@ function renderAnswers(){
 
 function setStatus(t){ statusEl.textContent = t; }
 
-// ── available lines in whole playfield ───────────────────────
+// ── available lines below title ───────────────────────────────
 function availableLines(){
   var wrapH  = document.getElementById('wrap').clientHeight;
   var titleH = titleEl.clientHeight;
@@ -139,7 +166,7 @@ function availableLines(){
   return Math.floor((wrapH - titleH - statH) / lineH);
 }
 
-// ── dict load ─────────────────────────────────────────────────
+// ── dict ──────────────────────────────────────────────────────
 async function loadDict(){
   setStatus('fetching dictionary...');
   try{
@@ -157,7 +184,7 @@ async function loadDict(){
   newPuzzle();
 }
 
-// ── puzzle ────────────────────────────────────────────────────
+// ── puzzle generation ─────────────────────────────────────────
 function shuffle(a){
   for(var i=a.length-1;i>0;i--){
     var j=Math.floor(Math.random()*(i+1));
@@ -217,18 +244,13 @@ function newPuzzle(){
     answers = [];
   } else {
     var result = makeSolvable();
-    if(result){
-      puzzle  = result.pat;
-      answers = result.ans;
-    } else {
-      puzzle  = makeImpossible();
-      answers = [];
-    }
+    if(result){ puzzle = result.pat; answers = result.ans; }
+    else       { puzzle = makeImpossible(); answers = []; }
   }
   renderPuzzle();
 }
 
-// ── input — capture phase so browser find never opens ────────
+// ── input ─────────────────────────────────────────────────────
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
   if(k !== 'Y' && k !== 'N') return;
@@ -243,22 +265,29 @@ function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
 
+  // always reveal word if one exists, regardless of Y or N
+  if(hasWord){
+    var chosen = answers[Math.floor(Math.random()*answers.length)];
+    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase());
+  } else {
+    addAnswer('-', null);
+  }
+
   if(correct){
-    score++;
-    if(userSaysYes){
-      var chosen = answers[Math.floor(Math.random()*answers.length)];
-      addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase());
+    if(tabLevel > 0){
+      tabLevel--;
     } else {
-      addAnswer('-', null);
+      score++;
     }
-    if(tabLevel > 0) tabLevel--;
     newPuzzle();
 
   } else {
     if(score > 0){
+      // burn positive buffer before shifting
       score--;
       newPuzzle();
     } else {
+      // score is 0 (or already displaced): shift right
       score = 0;
       tabLevel++;
       if(tabLevel >= MAX_TABS){
@@ -276,27 +305,30 @@ function handleAnswer(userSaysYes){
   }
 }
 
+// ── drop a line ───────────────────────────────────────────────
 function dropLine(){
-  titlePad++;
-  var pad = '\n'.repeat(titlePad);
-  titleEl.textContent = 'irresolvable? [Y/N]' + pad;
+  rowPad++;
+  applyRowPad();
 
   var avail = availableLines();
-  if(avail < 2){
+  if(avail - rowPad < 2){
     gameoverEl.style.display = 'flex';
     locked = true;
     return;
   }
 
   tabLevel = 0;
-  locked = false;
+  score    = 0;
+  locked   = false;
   newPuzzle();
   renderAnswers();
 }
 
-window.addEventListener('resize', renderAnswers);
+window.addEventListener('resize', function(){
+  renderAnswers();
+});
 
-// ── fallback dict ─────────────────────────────────────────────
+// ── fallback ──────────────────────────────────────────────────
 var FALLBACK = [
 'horse','house','mouse','worse','curse','nurse','purse','verse','parse','chase',
 'bend','band','bond','bind','fond','find','mind','wind','kind','land','hand','sand',
