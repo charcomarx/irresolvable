@@ -11,46 +11,52 @@ html,body{
   font-family:'Courier New',Courier,monospace;
   font-size:15px;line-height:1.4;
   overflow:hidden;
+  user-select:none;
 }
 #wrap{display:flex;flex-direction:column;width:100%;height:100%}
 
+/* title bar — grows downward on losses */
 #title{
-  color:#fff;white-space:pre;
+  color:#fff;
+  white-space:pre;
   padding:2px 6px;
   border-bottom:1px solid #333;
-  flex-shrink:0;letter-spacing:1px;
+  flex-shrink:0;
+  letter-spacing:1px;
 }
 
+/* spacer pushes puzzle + list down */
+#spacer{flex-shrink:0}
+
+/* puzzle line — sits at ~midpoint */
 #puzzleline{
   flex-shrink:0;
-  font-size:17px;letter-spacing:3px;
-  color:#fff;white-space:pre;
-  padding:5px 6px 4px 6px;
-  border-bottom:1px solid #222;
-  min-height:28px;
+  font-size:16px;
+  letter-spacing:3px;
+  color:#fff;
+  white-space:pre;
+  padding:2px 6px;
+  min-height:22px;
 }
 
-#log{
-  flex:1;overflow:hidden;
-  display:flex;flex-direction:column;
-  justify-content:flex-end;
-  padding:4px 6px;
-}
-#loglines{display:flex;flex-direction:column;overflow:hidden}
-.line{white-space:pre;line-height:1.4;flex-shrink:0;color:#555}
-.green{color:#6f6}
-.red{color:#f66}
-
+/* answer list — sits below puzzle, grows downward */
 #answerblock{
-  flex-shrink:0;border-top:1px solid #333;
-  padding:3px 6px;max-height:68px;
-  overflow:hidden;display:flex;flex-direction:column-reverse;
+  flex-shrink:0;
+  padding:0 6px;
+  overflow:hidden;
 }
-#answerlines{display:flex;flex-direction:column-reverse}
-.aline{color:#6f6;font-size:13px;white-space:pre;line-height:1.3}
+.aline{
+  color:#6f6;
+  font-size:14px;
+  white-space:pre;
+  line-height:1.4;
+}
+
+/* remaining space below list */
+#filler{flex:1}
 
 #status{
-  flex-shrink:0;font-size:11px;color:#444;
+  flex-shrink:0;font-size:11px;color:#383838;
   padding:1px 6px;border-top:1px solid #111;background:#050505;
 }
 
@@ -60,221 +66,303 @@ html,body{
 }
 #gotext{color:#fff;font-size:26px;letter-spacing:4px;animation:gb .5s step-end infinite}
 @keyframes gb{50%{opacity:0}}
-@keyframes flash{0%,100%{opacity:1}33%,66%{opacity:0}}
-.flashing{animation:flash .8s steps(1) forwards}
+@keyframes flash{0%,100%{opacity:1}25%,75%{opacity:0}}
+.flashing{animation:flash .9s steps(1) forwards}
 </style>
 </head>
 <body>
 <div id="wrap">
   <div id="title">irresolvable? [Y/N]</div>
+  <div id="spacer"></div>
   <div id="puzzleline"></div>
-  <div id="log"><div id="loglines"></div></div>
-  <div id="answerblock"><div id="answerlines"></div></div>
-  <div id="status">loading dictionary...</div>
+  <div id="answerblock"></div>
+  <div id="filler"></div>
+  <div id="status">loading...</div>
 </div>
 <div id="gameover"><div id="gotext">irresolvable?</div></div>
 
 <script>
-var dict=[], dictSet=new Set();
-var puzzle='', answers=[];
-var score=0, tabLevel=0, titleLines=0, locked=false;
-var MAX_TABS=9, TAB_SP=4;
+// ── globals ───────────────────────────────────────────────────────────────────
+var dict = [], dictSet = new Set();
+var puzzle = '', answers = [];
 
-var titleEl    = document.getElementById('title');
-var loglines   = document.getElementById('loglines');
-var answerlines= document.getElementById('answerlines');
-var puzzleEl   = document.getElementById('puzzleline');
-var statusEl   = document.getElementById('status');
-var gameoverEl = document.getElementById('gameover');
+// score: can be positive. tab only shifts when score reaches 0 and another wrong comes.
+// score tracks accrued "buffer" — wrongs burn it before shifting tab.
+var score = 0;
+// tabLevel: how many tab-stops to the right (0 = leftmost)
+var tabLevel = 0;
+// titlePad: how many blank lines have been added below the title (losses)
+var titlePad = 0;
+var locked = false;
 
-// ── Log ──────────────────────────────────────────────────────
-function log(text, cls){
-  var d=document.createElement('div');
-  d.className='line'+(cls?' '+cls:'');
-  d.textContent=text;
-  loglines.appendChild(d);
-  trimLog();
-}
-function trimLog(){
-  var logEl=document.getElementById('log');
-  var lineH=Math.round(15*1.4);
-  var max=Math.floor(logEl.clientHeight/lineH);
-  while(loglines.children.length>max) loglines.removeChild(loglines.firstChild);
-}
-function addAnswer(word){
-  var d=document.createElement('div');
-  d.className='aline';
-  d.textContent=word;
-  answerlines.prepend(d);
-  while(answerlines.children.length>5) answerlines.removeChild(answerlines.lastChild);
-}
-function setStatus(t){statusEl.textContent=t}
+var MAX_TABS = 9;
+var TAB_SP   = 4;   // spaces per tab stop
 
-// ── Dictionary ───────────────────────────────────────────────
+var titleEl   = document.getElementById('title');
+var spacerEl  = document.getElementById('spacer');
+var puzzleEl  = document.getElementById('puzzleline');
+var answerEl  = document.getElementById('answerblock');
+var statusEl  = document.getElementById('status');
+var gameoverEl= document.getElementById('gameover');
+
+var LINE_H = 0; // measured at start
+
+// ── measure line height ───────────────────────────────────────────────────────
+function measureLine(){
+  var t = document.createElement('div');
+  t.style.cssText='position:absolute;visibility:hidden;white-space:pre';
+  t.textContent='X';
+  document.body.appendChild(t);
+  LINE_H = t.getBoundingClientRect().height;
+  document.body.removeChild(t);
+}
+
+// ── layout: set spacer so puzzle sits at midpoint ─────────────────────────────
+function layoutSpacer(){
+  // total height of wrap
+  var total = document.getElementById('wrap').clientHeight;
+  // height consumed by title + status
+  var titleH = titleEl.getBoundingClientRect().height;
+  var statusH = document.getElementById('status').getBoundingClientRect().height;
+  // mid = half of remaining space below title, above status
+  var remaining = total - titleH - statusH;
+  var mid = Math.floor(remaining / 2);
+  // spacer fills up to puzzle midpoint
+  spacerEl.style.height = Math.max(0, mid) + 'px';
+}
+
+// ── available lines below title ───────────────────────────────────────────────
+function availableLines(){
+  var wrapH = document.getElementById('wrap').clientHeight;
+  var titleH = titleEl.getBoundingClientRect().height;
+  var statusH = document.getElementById('status').getBoundingClientRect().height;
+  return Math.floor((wrapH - titleH - statusH) / LINE_H);
+}
+
+// ── render puzzle ─────────────────────────────────────────────────────────────
+function renderPuzzle(){
+  var prefix = ' '.repeat(tabLevel * TAB_SP);
+  var sc = score > 0 ? ' +' + score : '';
+  puzzleEl.textContent = prefix + puzzle + sc;
+}
+
+// ── answer list ───────────────────────────────────────────────────────────────
+var answerHistory = []; // array of strings, newest first
+
+function addAnswer(text){
+  answerHistory.unshift(text);
+  renderAnswers();
+}
+
+function renderAnswers(){
+  answerEl.innerHTML = '';
+  // how many lines fit below puzzle to bottom (rough)
+  var puzzleTop = puzzleEl.getBoundingClientRect().top;
+  var wrapBottom = document.getElementById('wrap').clientHeight;
+  var statusH = document.getElementById('status').getBoundingClientRect().height;
+  var available = Math.floor((wrapBottom - statusH - puzzleTop - LINE_H * 1.5) / LINE_H);
+  available = Math.max(1, available);
+  var show = answerHistory.slice(0, available);
+  for(var i = 0; i < show.length; i++){
+    var d = document.createElement('div');
+    d.className = 'aline';
+    d.textContent = show[i];
+    answerEl.appendChild(d);
+  }
+}
+
+// ── dict load ─────────────────────────────────────────────────────────────────
 async function loadDict(){
   setStatus('fetching dictionary...');
   try{
-    var r=await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
-    var t=await r.text();
-    dict=t.split('\n').map(function(w){return w.trim().toLowerCase()})
-      .filter(function(w){return w.length>=3&&w.length<=8&&/^[a-z]+$/.test(w)});
-    dictSet=new Set(dict);
-    setStatus('dictionary: '+dict.length.toLocaleString()+' words — Y if a word fits, N if none can');
-  }catch(e){
-    dict=FALLBACK; dictSet=new Set(dict);
-    setStatus('offline dictionary ('+dict.length+' words) — Y if a word fits, N if none can');
+    var r = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+    var t = await r.text();
+    dict = t.split('\n')
+      .map(function(w){ return w.trim().toLowerCase(); })
+      .filter(function(w){ return w.length>=3 && w.length<=8 && /^[a-z]+$/.test(w); });
+    dictSet = new Set(dict);
+    setStatus('Y = a word fits   N = no word fits   ['+dict.length.toLocaleString()+' words]');
+  } catch(e){
+    dict = FALLBACK;
+    dictSet = new Set(dict);
+    setStatus('Y = a word fits   N = no word fits   [offline]');
   }
+  measureLine();
+  layoutSpacer();
   newPuzzle();
 }
 
-// ── Puzzle generation ────────────────────────────────────────
-// ~40% of puzzles are intentionally irresolvable
-function makePuzzle(){
-  if(Math.random()<0.4){
-    return makeImpossible();
-  } else {
-    return makeSolvable();
+// ── puzzle generation ─────────────────────────────────────────────────────────
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var x=a[i];a[i]=a[j];a[j]=x;
   }
+  return a;
+}
+
+function findAnswers(pat){
+  var re = new RegExp('^' + pat.toLowerCase().replace(/_/g,'[a-z]') + '$');
+  return dict.filter(function(w){ return re.test(w); });
 }
 
 function makeSolvable(){
-  for(var att=0;att<300;att++){
-    var w=dict[Math.floor(Math.random()*dict.length)];
-    var n=w.length;
-    // blank 1 to floor(n*0.6) letters, minimum 1
-    var maxB=Math.max(1,Math.floor(n*0.6));
-    var blanks=1+Math.floor(Math.random()*maxB);
-    blanks=Math.min(blanks,n-1); // keep at least 1 revealed letter
-    var pos=shuffle([...Array(n).keys()]).slice(0,blanks);
-    var pat=w.split('');
+  for(var att=0; att<400; att++){
+    var w = dict[Math.floor(Math.random()*dict.length)];
+    var n = w.length;
+    var maxB = Math.max(1, Math.floor(n*0.65));
+    var blanks = 1 + Math.floor(Math.random()*maxB);
+    blanks = Math.min(blanks, n-1);
+    var pos = shuffle([...Array(n).keys()]).slice(0, blanks);
+    var pat = w.split('');
     for(var i=0;i<pos.length;i++) pat[pos[i]]='_';
     if(pat.includes('_')) return pat.join('').toUpperCase();
   }
   return 'W_RD';
 }
 
+// consonant clusters that almost never appear in English words
+var BAD = ['zx','qk','vk','bx','wq','fv','jx','kz','xz','vj',
+           'bq','cj','dx','fj','gx','hx','jz','kj','lx','mx',
+           'nj','px','qv','rj','sx','tj','vx','wx','yj','zj',
+           'zw','zv','qx','qj','qz','xv','xw','xj','xk'];
+
 function makeImpossible(){
-  // Build a letter pattern that matches no dictionary word
-  var letters='bcdfghjklmnpqrstvwxyz'; // consonant-heavy pool
-  var vowels='aeiou';
-  for(var att=0;att<500;att++){
-    var len=3+Math.floor(Math.random()*4); // 3-6 chars
-    var blanks=1+Math.floor(Math.random()*(len-1));
-    var pat=[];
+  for(var att=0; att<600; att++){
+    var len = 3 + Math.floor(Math.random()*4);
+    var blanks = 1 + Math.floor(Math.random()*(len-1));
+    var pat = [];
     for(var i=0;i<len;i++) pat.push('_');
-    // fill non-blank positions with awkward consonant combos
-    var revealed=[];
-    for(var i=0;i<len-blanks;i++) revealed.push(i);
-    revealed=shuffle(revealed);
-    // pick consonant clusters unlikely to form words
-    var clusters=['zx','qk','vk','bx','wq','fv','jx','kz','xz','vj',
-                  'bq','cj','dx','fj','gx','hx','jz','kj','lx','mx',
-                  'nj','px','qv','rj','sx','tj','vx','wx','yj','zj'];
-    var cluster=clusters[Math.floor(Math.random()*clusters.length)];
-    var ci=0;
-    for(var i=0;i<revealed.length;i++){
-      pat[revealed[i]]=cluster[ci%cluster.length].toUpperCase();
-      ci++;
+    // choose positions to reveal
+    var revCount = len - blanks;
+    if(revCount < 1) revCount = 1;
+    var revPos = shuffle([...Array(len).keys()]).slice(0, revCount);
+    // pick a bad cluster and fill revealed positions from it
+    var cluster = BAD[Math.floor(Math.random()*BAD.length)];
+    for(var i=0;i<revPos.length;i++){
+      pat[revPos[i]] = cluster[i % cluster.length].toUpperCase();
     }
-    var str=pat.join('');
-    if(findAnswers(str).length===0) return str;
+    var str = pat.join('');
+    if(findAnswers(str).length === 0) return str;
   }
-  // absolute fallback impossible pattern
   return 'Z_XK';
 }
 
-function shuffle(a){
-  for(var i=a.length-1;i>0;i--){
-    var j=Math.floor(Math.random()*(i+1));
-    var t=a[i];a[i]=a[j];a[j]=t;
-  }
-  return a;
-}
-
-function findAnswers(pat){
-  var re=new RegExp('^'+pat.toLowerCase().replace(/_/g,'[a-z]')+'$');
-  return dict.filter(function(w){return re.test(w)});
-}
-
 function newPuzzle(){
-  puzzle=makePuzzle();
-  answers=findAnswers(puzzle);
+  // ~40% irresolvable
+  if(Math.random() < 0.4){
+    puzzle  = makeImpossible();
+    answers = [];
+  } else {
+    puzzle  = makeSolvable();
+    answers = findAnswers(puzzle);
+    // safety: if solvable produced no answers, remake as impossible
+    if(answers.length === 0){
+      puzzle = makeImpossible();
+    }
+  }
   renderPuzzle();
 }
 
-function renderPuzzle(){
-  var prefix=' '.repeat(tabLevel*TAB_SP);
-  var sc=score>0?' +'+score:'';
-  puzzleEl.textContent=prefix+puzzle+sc;
-}
-
-// ── Input ────────────────────────────────────────────────────
-document.addEventListener('keydown',function(e){
-  if(locked) return;
-  var key=e.key.toUpperCase();
-  if(key==='Y') handleAnswer(true);
-  if(key==='N') handleAnswer(false);
-});
+// ── input ─────────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e){
+  var k = e.key.toUpperCase();
+  // always swallow Y and N so browser find-as-you-type never opens
+  if(k === 'Y' || k === 'N'){
+    e.preventDefault();
+    e.stopPropagation();
+    if(!locked){
+      if(k === 'Y') handleAnswer(true);
+      if(k === 'N') handleAnswer(false);
+    }
+  }
+}, true); // capture phase: fires before browser default handling
 
 function handleAnswer(userSaysYes){
-  var hasWord=answers.length>0;
-  var correct=(userSaysYes&&hasWord)||(!userSaysYes&&!hasWord);
-
-  // log the puzzle line as history
-  var prefix=' '.repeat(tabLevel*TAB_SP);
-  var sc=score>0?' +'+score:'';
-  log(prefix+puzzle+sc, correct?'green':'red');
+  var hasWord = answers.length > 0;
+  var correct = (userSaysYes && hasWord) || (!userSaysYes && !hasWord);
 
   if(correct){
     score++;
     if(userSaysYes){
-      var chosen=answers[Math.floor(Math.random()*answers.length)].toUpperCase();
-      addAnswer('+ '+chosen);
+      var chosen = answers[Math.floor(Math.random()*answers.length)].toUpperCase();
+      addAnswer(chosen);
     } else {
-      addAnswer('- (none)');
+      addAnswer('-');
     }
-    tabLevel=Math.max(0,tabLevel-1);
+    // correct answer: drift tab left by 1 if we're displaced
+    if(tabLevel > 0) tabLevel--;
     newPuzzle();
+
   } else {
-    score=score-1;
-    tabLevel++;
-    if(tabLevel>=MAX_TABS){
-      locked=true;
-      puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.textContent='';
-        advanceTitle();
-      },900);
+    // wrong answer: burn score buffer first, then shift tab
+    if(score > 0){
+      score--;
+      // stays at current tab, just score drops
+      newPuzzle();
     } else {
-      renderPuzzle();
+      // score is 0 (or already negative internally — we keep it at 0 for display)
+      score = 0;
+      tabLevel++;
+      if(tabLevel >= MAX_TABS){
+        // flash x3 then drop a line
+        locked = true;
+        puzzleEl.classList.add('flashing');
+        setTimeout(function(){
+          puzzleEl.classList.remove('flashing');
+          puzzleEl.textContent = '';
+          dropLine();
+        }, 1000);
+      } else {
+        newPuzzle();
+      }
     }
   }
 }
 
-function advanceTitle(){
-  titleLines++;
-  var logEl=document.getElementById('log');
-  var lineH=Math.round(15*1.4);
-  var available=Math.floor(logEl.clientHeight/lineH);
-  if(titleLines>available){
-    gameoverEl.style.display='flex';
-    locked=true;
+// ── drop a line (lose a row) ──────────────────────────────────────────────────
+function dropLine(){
+  titlePad++;
+
+  // rebuild title with extra blank lines
+  var pad = '';
+  for(var i=0;i<titlePad;i++) pad += '\n';
+  titleEl.textContent = 'irresolvable? [Y/N]' + pad;
+
+  // recalculate spacer — midpoint has also shifted down
+  layoutSpacer();
+
+  // check if any lines remain below the title
+  var avail = availableLines();
+  // puzzle + answer list need at least 1 line each
+  if(avail < 2){
+    gameoverEl.style.display = 'flex';
+    locked = true;
     return;
   }
-  titleEl.textContent='irresolvable? [Y/N]'+'\n'.repeat(titleLines);
-  tabLevel=0; locked=false;
+
+  tabLevel = 0;
+  locked = false;
   newPuzzle();
+  renderAnswers(); // re-trim answer list to new available space
 }
 
-// ── Fallback ─────────────────────────────────────────────────
-var FALLBACK=[
+function setStatus(t){ statusEl.textContent = t; }
+
+window.addEventListener('resize', function(){
+  measureLine();
+  layoutSpacer();
+  renderAnswers();
+});
+
+// ── fallback ──────────────────────────────────────────────────────────────────
+var FALLBACK = [
 'horse','house','mouse','worse','curse','nurse','purse','verse','parse','chase',
 'bend','band','bond','bind','fond','find','mind','wind','kind','land','hand','sand',
 'card','cart','care','dare','dark','lark','bark','mark','park','hard','harm','farm',
 'best','rest','test','nest','west','jest','pest','vest','zest','last','past','fast',
-'cold','bold','gold','hold','mold','sold','told','fold','cord',
-'light','night','fight','right','might','tight','sight','white',
+'cold','bold','gold','hold','mold','sold','told','fold','cord','word','lord','ford',
+'light','night','fight','right','might','tight','sight','white','bight',
 'dream','cream','steam','seam','beam','team','ream','gleam',
 'stone','tone','bone','cone','done','gone','lone','none','zone','hone','phone',
 'start','smart','chart','heart','dart','part','tart','mart',
@@ -288,10 +376,9 @@ var FALLBACK=[
 'drive','strive','thrive','alive','hive','dive','live',
 'place','space','grace','trace','brace','race','face','lace','pace','mace',
 'break','steak','creak','freak','speak','sneak','weak','beak','leak','peak',
-'world','swirl','twirl','girl','curl','hurl','furl','pearl','earl',
+'world','swirl','twirl','girl','curl','hurl','pearl','earl',
 'plant','slant','grant','chant','rant','pant','cant','scan','plan','clan',
 'watch','match','catch','hatch','patch','latch','batch',
-'word','lord','ford','form','norm','dorm','worm','storm','born',
 'field','yield','shield','wield','build','guild','child','mild','wild',
 'groan','grown','brown','crown','frown','drown','known','blown','shown',
 'think','drink','blink','brink','shrink','sink','link','rink','pink','wink',
@@ -306,10 +393,10 @@ var FALLBACK=[
 'strip','drip','trip','grip','skip','ship','chip','dip','flip','hip',
 'frost','cost','lost','post','most','host','ghost','boast','roast','toast',
 'magic','major','maker','manor','march','match','mayor','media','mercy','merge',
-'table','talon','taunt','thorn','three','threw','throw','thumb',
 'valid','valor','valve','vapor','vault','video','vigor','viral','virus',
 'wafer','waist','waltz','waste','water','weave','wedge','weigh','whale',
-'yacht','yearn','yield','young','zeal','zebra','zippy','zesty'
+'yacht','yearn','yield','young','zeal','zebra','zippy','zesty','table','talon',
+'thorn','three','threw','throw','thumb','brain','bland','blank','blast','blaze'
 ];
 
 loadDict();
