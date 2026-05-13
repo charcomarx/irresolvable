@@ -315,7 +315,7 @@ html,body{
   #title{
     font-size:20px;
     padding:4px 6px;
-    text-align:center;
+    text-align:right;
     width:100%;
   }
   #puzzleline{
@@ -465,7 +465,6 @@ function renderPuzzle(){
 function applyRowPad(){
   var pad = rowPad > 0 ? '\n'.repeat(rowPad) : '';
   puzzleRowEl.textContent = pad;
-  answerRowEl.textContent = pad;
 }
 
 function addAnswer(text, link, wasCorrect){
