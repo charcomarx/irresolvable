@@ -523,14 +523,15 @@ function handleAnswer(userSaysYes){
   var correct = (userSaysYes === hasWord);
   
   if(hasWord){
+    // Solvable puzzle - show the real word with link
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), correct);
   } else {
-    addAnswer('-', null, correct);
+    // Impossible puzzle - show the puzzle pattern itself (with underscores), no link
+    addAnswer(puzzle, null, correct);
   }
   
   if(correct){
-    // CORRECT: move left if displaced, otherwise increase score
     if(tabLevel > 0){
       tabLevel--;
       if(tabLevel === 0) score = 0;
@@ -539,17 +540,13 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-    // FALSE INPUT: 
     if(score < 0){
-      // Already in negative - push further right
       tabLevel++;
     } else {
-      // First false input - go to -1 and tab 1
       score = -1;
       tabLevel = 1;
     }
     
-    // Check if we've hit the right margin
     if(tabLevel >= MAX_TABS){
       locked = true;
       puzzleEl.classList.add('flashing');
