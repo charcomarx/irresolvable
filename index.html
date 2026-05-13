@@ -534,14 +534,6 @@ function findAnswers(pattern){
     return matches;
   } catch(e){ return []; }
 }
-  
-  // Fallback to any word in range
-  var candidates = dict.filter(function(w){ return w.length >= minLen && w.length <= maxLen; });
-  if(candidates.length){
-    return candidates[Math.floor(Math.random() * candidates.length)];
-  }
-  return dict[Math.floor(Math.random() * dict.length)];
-}
 
 // Generate IMPOSSIBLE puzzle - start with a non-word, then blank it
 function generateImpossible(){
@@ -580,7 +572,7 @@ function generateImpossible(){
     if(findAnswers(nonWord).length > 0) continue;
     
     // Blank out 2-4 positions
-    var blankCount = 2 + Math.floor(Math.random() * 3); // 2, 3, or 4 blanks
+    var blankCount = 2 + Math.floor(Math.random() * 3);
     blankCount = Math.min(blankCount, nonWord.length - 1);
     var positions = [];
     for(var i = 0; i < nonWord.length; i++) positions.push(i);
@@ -614,7 +606,7 @@ function generateImpossible(){
   }
   return fallback;
 }
-  
+
 // Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
@@ -630,7 +622,10 @@ function generateSolvable(){
     }
     
     if(!word){
-      word = getBalancedWord(3, 10);
+      var candidates = dict.filter(function(w){ return w.length >= 3 && w.length <= 10; });
+      if(candidates.length){
+        word = candidates[Math.floor(Math.random() * candidates.length)];
+      }
     }
     if(!word) continue;
     
@@ -661,6 +656,33 @@ function generateSolvable(){
   ];
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
+
+function newPuzzle(){
+  if(dict.length === 0){
+    setTimeout(newPuzzle, 100);
+    return;
+  }
+  
+  var isImpossible = Math.random() < 0.3;
+  
+  if(isImpossible){
+    puzzle = generateImpossible();
+    answers = [];
+    var check = findAnswers(puzzle);
+    if(check.length > 0){
+      puzzle = generateImpossible();
+      answers = [];
+    }
+  } else {
+    var result = generateSolvable();
+    puzzle = result.pat;
+    answers = result.ans;
+    if(answers.length === 0){
+      result = generateSolvable();
+      puzzle = result.pat;
+      answers = result.ans;
+    }
+  }
   
   // Prevent exact repeats
   if(recentPuzzles.includes(puzzle)){
@@ -672,17 +694,15 @@ function generateSolvable(){
   
   renderPuzzle();
 }
-  
+
 function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   
-  // Determine color based on correctness and what user answered
   var answerColor;
   if(correct){
     answerColor = 'white';
   } else {
-    // Incorrect: if user said Y (wrongly said yes to no word) = red, if user said N (wrongly said no to real word) = green
     answerColor = userSaysYes ? '#f66' : '#6f6';
   }
   
@@ -709,7 +729,6 @@ function handleAnswer(userSaysYes){
       tabLevel = 1;
     }
     
-    // Show tab shift immediately
     renderPuzzle();
     
     if(tabLevel >= MAX_TABS){
@@ -739,7 +758,7 @@ function dropLine(){
   renderAnswers();
 }
 
-// Keyboard input - ignore if message box is focused
+// Keyboard input
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
   if(k !== 'Y' && k !== 'N') return;
@@ -845,9 +864,9 @@ async function loadDict(){
   setStatus('loading Scrabble dictionary...');
   
   var urls = [
-  'https://raw.githubusercontent.com/danvk/hybrid-boggle/main/wordlists/sowpods.txt',
-  'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt'
-];
+    'https://raw.githubusercontent.com/danvk/hybrid-boggle/main/wordlists/sowpods.txt',
+    'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt'
+  ];
   
   var loaded = false;
   for(var u = 0; u < urls.length && !loaded; u++){
@@ -879,5 +898,6 @@ async function loadDict(){
 loadMessages();
 loadDict();
 </script>
+  
 </body>
 </html>
