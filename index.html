@@ -534,18 +534,6 @@ function findAnswers(pattern){
     return matches;
   } catch(e){ return []; }
 }
-
-// Helper function for balanced word selection
-function getBalancedWord(minLen, maxLen){
-  // 40% chance to pick a short word (3-5 letters), 60% chance for any length
-  var useShort = Math.random() < 0.4;
-  
-  if(useShort){
-    var shortWords = dict.filter(function(w){ return w.length >= 3 && w.length <= 5; });
-    if(shortWords.length){
-      return shortWords[Math.floor(Math.random() * shortWords.length)];
-    }
-  }
   
   // Fallback to any word in range
   var candidates = dict.filter(function(w){ return w.length >= minLen && w.length <= maxLen; });
@@ -555,17 +543,19 @@ function getBalancedWord(minLen, maxLen){
   return dict[Math.floor(Math.random() * dict.length)];
 }
 
-// Generate IMPOSSIBLE puzzle - ONLY returns patterns with 0 dictionary matches
+// Generate IMPOSSIBLE puzzle - start with a non-word, then blank it
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
-    var baseWord = getBalancedWord(4, 10);
-    if(!baseWord) continue;
+    // Get a random word to use as template
+    var template = dict[Math.floor(Math.random() * dict.length)];
+    if(!template || template.length < 5) continue;
     
-    var chars = baseWord.split('');
+    var chars = template.split('');
     
-    // For short words (4-5 letters), change only 1 letter
-    // For longer words (6-10), change 2-3 letters
-    var changeCount = chars.length <= 5 ? 1 : Math.min(2 + Math.floor(Math.random() * 2), chars.length - 1);
+    // Aggressively change 50% of the letters (minimum 2, maximum 4)
+    var changeCount = Math.max(2, Math.floor(chars.length / 2));
+    changeCount = Math.min(changeCount, 4);
+    
     for(var c = 0; c < changeCount; c++){
       var pos = Math.floor(Math.random() * chars.length);
       var originalChar = chars[pos];
@@ -589,8 +579,9 @@ function generateImpossible(){
     var nonWord = chars.join('');
     if(findAnswers(nonWord).length > 0) continue;
     
-    // Blank out 1-2 positions
-    var blankCount = Math.min(1 + Math.floor(Math.random() * 2), nonWord.length - 1);
+    // Blank out 2-4 positions
+    var blankCount = 2 + Math.floor(Math.random() * 3); // 2, 3, or 4 blanks
+    blankCount = Math.min(blankCount, nonWord.length - 1);
     var positions = [];
     for(var i = 0; i < nonWord.length; i++) positions.push(i);
     positions = shuffle(positions).slice(0, blankCount);
@@ -607,13 +598,40 @@ function generateImpossible(){
     }
   }
   
-  return '_NKN_WN_';
+  // Fallback - random pattern
+  var letters = 'BCDFGHKLMNPQRSTVWXYZ';
+  var vowels = 'AEIOU';
+  var fallback = '';
+  var len = 6 + Math.floor(Math.random() * 3);
+  for(var i = 0; i < len; i++){
+    if(Math.random() < 0.4){
+      fallback += '_';
+    } else if(Math.random() < 0.7){
+      fallback += letters[Math.floor(Math.random() * letters.length)];
+    } else {
+      fallback += vowels[Math.floor(Math.random() * vowels.length)];
+    }
+  }
+  return fallback;
 }
-
+  
 // Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
-    var word = getBalancedWord(3, 10);
+    // 35% chance to force a short word (3-5 letters), 65% any length
+    var useShort = Math.random() < 0.35;
+    var word;
+    
+    if(useShort){
+      var shortWords = dict.filter(function(w){ return w.length >= 3 && w.length <= 5; });
+      if(shortWords.length){
+        word = shortWords[Math.floor(Math.random() * shortWords.length)];
+      }
+    }
+    
+    if(!word){
+      word = getBalancedWord(3, 10);
+    }
     if(!word) continue;
     
     var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1);
@@ -643,33 +661,6 @@ function generateSolvable(){
   ];
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
-  
-function newPuzzle(){
-  if(dict.length === 0){
-    setTimeout(newPuzzle, 100);
-    return;
-  }
-  
-  var isImpossible = Math.random() < 0.3;
-  
-  if(isImpossible){
-    puzzle = generateImpossible();
-    answers = [];
-    var check = findAnswers(puzzle);
-    if(check.length > 0){
-      puzzle = generateImpossible();
-      answers = [];
-    }
-  } else {
-    var result = generateSolvable();
-    puzzle = result.pat;
-    answers = result.ans;
-    if(answers.length === 0){
-      result = generateSolvable();
-      puzzle = result.pat;
-      answers = result.ans;
-    }
-  }
   
   // Prevent exact repeats
   if(recentPuzzles.includes(puzzle)){
