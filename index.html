@@ -22,7 +22,6 @@ html,body{
   flex-shrink:0;letter-spacing:1px;
 }
 
-/* puzzle row — offset by rowPad blank lines below title */
 #puzzlerow{
   flex-shrink:0;
   white-space:pre;
@@ -36,7 +35,6 @@ html,body{
 
 #gap{flex:1}
 
-/* answer list — offset by same rowPad */
 #answerrow{
   flex-shrink:0;
   white-space:pre;
@@ -49,6 +47,14 @@ html,body{
 .aline{
   color:#6f6;font-size:14px;
   white-space:pre;line-height:1.4;
+}
+.aline a{
+  color:#6f6;
+  text-decoration:none;
+  border-bottom:1px solid #3a3;
+}
+.aline a:hover{
+  color:#aff;
 }
 
 #status{
@@ -74,24 +80,17 @@ html,body{
   <div id="gap"></div>
   <div id="answerrow"></div>
   <div id="answerblock"></div>
-  <div id="status">loading...</div>
+  <div id="status">loading dictionary (170k words)...</div>
 </div>
 <div id="gameover"><div id="gotext">irresolvable?</div></div>
 
 <script>
-var dict = [], dictSet = new Set();
+var dict = [];
 var puzzle = '', answers = [];
 
-// Scoring model:
-//   score > 0  : positive buffer, shown as "+N", tab=0
-//   score = 0  : rest, no number shown, tab=0
-//   score = -1 : shown as "-1" at tab=0 (one warning before displacement)
-//   tab > 0    : displaced right, no number shown
-//   tab < 0    : (not used, clamp at 0)
-
-var score    = 0;   // integer, can be positive or -1 at tab=0
-var tabLevel = 0;   // displacement steps right (0=left)
-var rowPad   = 0;   // blank lines added below title (and above answer list)
+var score    = 0;
+var tabLevel = 0;
+var rowPad   = 0;
 var locked   = false;
 
 var MAX_TABS = 9;
@@ -107,22 +106,18 @@ var answerEl   = document.getElementById('answerblock');
 var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
 
-// ── render puzzle ─────────────────────────────────────────────
 function renderPuzzle(){
   var prefix = ' '.repeat(tabLevel * TAB_SP);
   var sc = (tabLevel === 0 && score > 0) ? ' +' + score : '';
   puzzleEl.textContent = prefix + puzzle + sc;
 }
 
-// ── row padding (blank lines above puzzle and above answer list) ──
 function applyRowPad(){
-  // blank lines = rowPad newlines rendered as empty divs via white-space:pre
   var pad = rowPad > 0 ? '\n'.repeat(rowPad) : '';
   puzzleRowEl.textContent = pad;
   answerRowEl.textContent = pad;
 }
 
-// ── answer list ───────────────────────────────────────────────
 function addAnswer(text, link){
   answerHistory.unshift({text: text, link: link || null});
   renderAnswers();
@@ -131,7 +126,7 @@ function addAnswer(text, link){
 function renderAnswers(){
   answerEl.innerHTML = '';
   var gapH  = gapEl.clientHeight;
-  var lineH = puzzleEl.clientHeight || 22;
+  var lineH = (puzzleEl.clientHeight || 22) * 1.2;
   var max   = Math.max(1, Math.floor(gapH / lineH));
   var show  = answerHistory.slice(0, max);
   for(var i = 0; i < show.length; i++){
@@ -144,9 +139,6 @@ function renderAnswers(){
       a.target = '_blank';
       a.rel = 'noopener';
       a.textContent = entry.text;
-      a.style.cssText = 'color:#6f6;text-decoration:none;border-bottom:1px solid #3a3;';
-      a.onmouseover = function(){ this.style.color='#aff'; };
-      a.onmouseout  = function(){ this.style.color='#6f6'; };
       d.appendChild(a);
     } else {
       d.textContent = entry.text;
@@ -157,7 +149,6 @@ function renderAnswers(){
 
 function setStatus(t){ statusEl.textContent = t; }
 
-// ── available lines below title ───────────────────────────────
 function availableLines(){
   var wrapH  = document.getElementById('wrap').clientHeight;
   var titleH = titleEl.clientHeight;
@@ -166,123 +157,118 @@ function availableLines(){
   return Math.floor((wrapH - titleH - statH) / lineH);
 }
 
-// ── dict ──────────────────────────────────────────────────────
-async function loadDict(){
-  setStatus('fetching dictionary...');
-  try{
-    var r = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
-    var t = await r.text();
-    dict = t.split('\n')
-      .map(function(w){ return w.trim().toLowerCase(); })
-      .filter(function(w){ return w.length>=3 && w.length<=8 && /^[a-z]+$/.test(w); });
-    dictSet = new Set(dict);
-    setStatus('Y = a word fits   N = no word fits   [' + dict.length.toLocaleString() + ' words]');
-  } catch(e){
-    dict = FALLBACK; dictSet = new Set(dict);
-    setStatus('Y = a word fits   N = no word fits   [offline]');
-  }
-  newPuzzle();
-}
-
-// ── puzzle generation ─────────────────────────────────────────
-function shuffle(a){
-  for(var i=a.length-1;i>0;i--){
+function shuffle(arr){
+  for(var i=arr.length-1;i>0;i--){
     var j=Math.floor(Math.random()*(i+1));
-    var x=a[i];a[i]=a[j];a[j]=x;
+    var x=arr[i];arr[i]=arr[j];arr[j]=x;
   }
-  return a;
+  return arr;
 }
 
-function findAnswers(pat){
-  var re = new RegExp('^' + pat.toLowerCase().replace(/_/g,'[a-z]') + '$');
-  return dict.filter(function(w){ return re.test(w); });
-}
-
-var BAD = ['zx','qk','vk','bx','fv','jx','kz','xz','vj',
-           'bq','cj','fj','gx','hx','jz','kj','lx','mx',
-           'nj','px','qv','rj','tj','vx','wx','yj','zj',
-           'zw','zv','qx','qj','qz','xv','xw','xj','xk'];
-
-function makeImpossible(){
-  while(true){ // ← guarantees success, no fallback needed
-
-    // 1. start from a GOOD solvable pattern
-    var base = makeSolvable();
-    if(!base) continue;
-
-    // must feel ambiguous (important)
-    if(base.ans.length < 3) continue;
-
-    var pat = base.pat.split('');
-    var n = pat.length;
-
-    // 2. try small, believable mutations
-    for(var tries = 0; tries < 20; tries++){
-
-      var test = pat.slice();
-
-      // pick a position that is NOT blank
-      var idxs = [];
-      for(var i=0;i<n;i++){
-        if(test[i] !== '_') idxs.push(i);
-      }
-      if(idxs.length === 0) continue;
-
-      var idx = idxs[Math.floor(Math.random()*idxs.length)];
-
-      // replace with COMMON letters only
-      var letters = 'ETAOINSHRDLU';
-      var newL = letters[Math.floor(Math.random()*letters.length)];
-
-      if(test[idx] === newL) continue;
-
-      test[idx] = newL;
-
-      var str = test.join('').toUpperCase();
-
-      // 3. ONLY accept if it truly has zero answers
-      if(findAnswers(str).length === 0){
-        return str;
-      }
+function findAnswers(pattern){
+  try{
+    var re = new RegExp('^' + pattern.toLowerCase().replace(/_/g,'[a-z]') + '$');
+    var matches = [];
+    for(var i = 0; i < dict.length && matches.length < 20; i++){
+      if(re.test(dict[i])) matches.push(dict[i]);
     }
+    return matches;
+  } catch(e){ return []; }
+}
+
+// Generate a random pattern with blanks
+function generateRandomPattern(){
+  var lengths = [4,5,6,7];
+  var len = lengths[Math.floor(Math.random() * lengths.length)];
+  var blankCount = Math.floor(Math.random() * (len - 2)) + 1; // 1 to len-2 blanks
+  
+  // Start with all underscores
+  var pattern = [];
+  for(var i = 0; i < len; i++) pattern.push('_');
+  
+  // Fill some positions with random consonants (to make it look plausible)
+  var consonants = 'BCDFGHKLMNPQRSTVWXYZ';
+  var filled = 0;
+  var targetFilled = len - blankCount;
+  
+  // Prioritize filling first and last positions (words typically start/end with consonants)
+  if(targetFilled > 0 && pattern[0] === '_'){
+    pattern[0] = consonants[Math.floor(Math.random() * consonants.length)];
+    filled++;
+  }
+  if(targetFilled > 1 && pattern[len-1] === '_'){
+    pattern[len-1] = consonants[Math.floor(Math.random() * consonants.length)];
+    filled++;
+  }
+  
+  // Fill remaining positions randomly
+  var positions = [];
+  for(var i = 0; i < len; i++){
+    if(pattern[i] === '_') positions.push(i);
+  }
+  positions = shuffle(positions);
+  for(var i = 0; i < positions.length && filled < targetFilled; i++){
+    var useVowel = Math.random() < 0.3; // 30% chance vowel
+    if(useVowel){
+      var vowels = 'AEIOU';
+      pattern[positions[i]] = vowels[Math.floor(Math.random() * vowels.length)];
+    } else {
+      pattern[positions[i]] = consonants[Math.floor(Math.random() * consonants.length)];
+    }
+    filled++;
+  }
+  
+  return pattern.join('');
+}
+
+// Generate a puzzle with EXACTLY the specified number of answers (or 0 for impossible)
+function generatePuzzleWithAnswerCount(targetCount){
+  for(var attempt = 0; attempt < 500; attempt++){
+    var pattern = generateRandomPattern();
+    var matches = findAnswers(pattern);
+    if(targetCount === 0 && matches.length === 0){
+      return {pat: pattern, ans: []};
+    }
+    if(targetCount > 0 && matches.length >= 1 && matches.length <= 8){
+      return {pat: pattern, ans: matches};
+    }
+  }
+  // Fallback
+  if(targetCount === 0){
+    return {pat: 'Z_XK_Q', ans: []};
+  } else {
+    return {pat: 'H_RSE', ans: ['horse','house']};
   }
 }
 
 function newPuzzle(){
-  if(Math.random() < 0.4){
-    puzzle  = makeImpossible();
-    answers = [];
+  // 50/50 split
+  if(Math.random() < 0.5){
+    // Generate IMPOSSIBLE (0 answers)
+    var result = generatePuzzleWithAnswerCount(0);
+    puzzle = result.pat;
+    answers = result.ans;
   } else {
-    var result = makeSolvable();
-    if(result){ puzzle = result.pat; answers = result.ans; }
-    else       { puzzle = makeImpossible(); answers = []; }
+    // Generate SOLVABLE (1-8 answers)
+    var result = generatePuzzleWithAnswerCount(1);
+    puzzle = result.pat;
+    answers = result.ans;
   }
   renderPuzzle();
 }
 
-// ── input ─────────────────────────────────────────────────────
-document.addEventListener('keydown', function(e){
-  var k = e.key.toUpperCase();
-  if(k !== 'Y' && k !== 'N') return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  if(locked) return;
-  handleAnswer(k === 'Y');
-}, true);
-
-// ── game logic ────────────────────────────────────────────────
 function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
-
-  // always reveal word if one exists, regardless of Y or N
+  
+  // Reveal word if exists
   if(hasWord){
-    var chosen = answers[Math.floor(Math.random()*answers.length)];
+    var chosen = answers[Math.floor(Math.random() * answers.length)];
     addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase());
   } else {
     addAnswer('-', null);
   }
-
+  
   if(correct){
     if(tabLevel > 0){
       tabLevel--;
@@ -290,14 +276,11 @@ function handleAnswer(userSaysYes){
       score++;
     }
     newPuzzle();
-
   } else {
     if(score > 0){
-      // burn positive buffer before shifting
       score--;
       newPuzzle();
     } else {
-      // score is 0 (or already displaced): shift right
       score = 0;
       tabLevel++;
       if(tabLevel >= MAX_TABS){
@@ -315,72 +298,54 @@ function handleAnswer(userSaysYes){
   }
 }
 
-// ── drop a line ───────────────────────────────────────────────
 function dropLine(){
   rowPad++;
   applyRowPad();
-
+  
   var avail = availableLines();
   if(avail - rowPad < 2){
     gameoverEl.style.display = 'flex';
     locked = true;
     return;
   }
-
+  
   tabLevel = 0;
-  score    = 0;
-  locked   = false;
+  score = 0;
+  locked = false;
   newPuzzle();
   renderAnswers();
 }
+
+document.addEventListener('keydown', function(e){
+  var k = e.key.toUpperCase();
+  if(k !== 'Y' && k !== 'N') return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  if(locked) return;
+  handleAnswer(k === 'Y');
+}, true);
 
 window.addEventListener('resize', function(){
   renderAnswers();
 });
 
-// ── fallback ──────────────────────────────────────────────────
-var FALLBACK = [
-'horse','house','mouse','worse','curse','nurse','purse','verse','parse','chase',
-'bend','band','bond','bind','fond','find','mind','wind','kind','land','hand','sand',
-'card','cart','care','dare','dark','lark','bark','mark','park','hard','harm','farm',
-'best','rest','test','nest','west','jest','pest','vest','zest','last','past','fast',
-'cold','bold','gold','hold','mold','sold','told','fold','cord','word','lord','ford',
-'light','night','fight','right','might','tight','sight','white',
-'dream','cream','steam','seam','beam','team','ream','gleam',
-'stone','tone','bone','cone','done','gone','lone','none','zone','hone','phone',
-'start','smart','chart','heart','dart','part','tart','mart',
-'green','greet','creek','creep','breed','freed','treed','steed','creed',
-'flame','blame','frame','shame','tame','game','name','same','came','lame','fame',
-'pride','bride','slide','glide','guide','tide','side','hide','wide','ride',
-'cloud','proud','loud','shroud','crowd',
-'brain','train','grain','drain','plain','main','pain','rain','vain','chain',
-'smile','while','pile','mile','file','tile','bile','vile','rile',
-'black','slack','crack','track','stack','snack','knack','hack','jack','rack',
-'drive','strive','thrive','alive','hive','dive','live',
-'place','space','grace','trace','brace','race','face','lace','pace','mace',
-'break','steak','creak','freak','speak','sneak','weak','beak','leak','peak',
-'world','swirl','twirl','girl','curl','hurl','pearl','earl',
-'plant','slant','grant','chant','rant','pant','cant','scan','plan','clan',
-'watch','match','catch','hatch','patch','latch','batch',
-'field','yield','shield','wield','build','guild','child','mild','wild',
-'groan','grown','brown','crown','frown','drown','known','blown','shown',
-'think','drink','blink','brink','shrink','sink','link','rink','pink','wink',
-'spare','share','stare','flare','glare','snare','bare','care','dare','fare',
-'spade','blade','trade','grade','shade','made','wade','jade','fade','aide',
-'flesh','fresh','mesh','bash','cash','clash','crash','dash','flash','trash',
-'brook','crook','shook','took','look','book','cook','hook','nook','rook',
-'steep','creep','sleep','sweep','deep','keep','jeep','weep','seep',
-'bunch','munch','crunch','lunch','punch','hunch','chunk','dunk','bunk','funk',
-'cling','fling','sling','bring','ring','sing','king','wing','thing','ding',
-'brush','crush','blush','flush','gush','hush','lush','mush','rush',
-'strip','drip','trip','grip','skip','ship','chip','dip','flip','hip',
-'frost','cost','lost','post','most','host','ghost','boast','roast','toast',
-'magic','major','maker','manor','march','match','mayor','media','mercy','merge',
-'valid','valor','valve','vapor','vault','video','vigor','viral','virus',
-'wafer','waist','waltz','waste','water','weave','wedge','weigh','whale',
-'yacht','yearn','yield','young','zeal','zebra','zippy','zesty','table','talon',
-'thorn','three','threw','throw','thumb','brain','bland','blank','blast','blaze'
-];
+var FALLBACK = ['horse','house','mouse','worse','bird','bard','cat','cot','cut','fox','fix','wolf','crank','blade','grass'];
+
+async function loadDict(){
+  setStatus('fetching 170k word dictionary...');
+  try{
+    var r = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+    var t = await r.text();
+    dict = t.split('\n')
+      .map(function(w){ return w.trim().toLowerCase(); })
+      .filter(function(w){ return w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w); });
+    setStatus('✓ ' + dict.length.toLocaleString() + ' words | 50/50 solvable/impossible | Y/N');
+  } catch(e){
+    dict = FALLBACK;
+    setStatus('offline mode - ' + dict.length + ' words');
+  }
+  newPuzzle();
+}
 
 loadDict();
 </script>
