@@ -123,7 +123,7 @@ html,body{
 #status{
   flex-shrink:0;
   font-size:11px;
-  color:#383838;
+  color:#fff;
   padding:1px 6px;
   border-top:1px solid #111;
   background:#050505;
@@ -635,7 +635,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + 'real words');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' real words. CLick to discover.');
         }
       }
     } catch(e){}
