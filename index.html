@@ -538,10 +538,17 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-    // FALSE INPUT: immediately go to score = -1 ("!") and tabLevel = 1
-    score = -1;
-    tabLevel = 1;
+    // FALSE INPUT: 
+    if(score < 0){
+      // Already in negative - push further right
+      tabLevel++;
+    } else {
+      // First false input - go to -1 and tab 1
+      score = -1;
+      tabLevel = 1;
+    }
     
+    // Check if we've hit the right margin
     if(tabLevel >= MAX_TABS){
       locked = true;
       puzzleEl.classList.add('flashing');
