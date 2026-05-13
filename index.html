@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>irresolvable?</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{
+  width:100%;height:100%;
+  background:#000;color:#ccc;
+  font-family:'Courier New',Courier,monospace;
+  font-size:15px;line-height:1.4;
+  overflow:hidden;
+}
+#wrap{display:flex;flex-direction:column;width:100%;height:100%}
+
+#title{
+  color:#fff;white-space:pre;
+  padding:2px 6px;
+  border-bottom:1px solid #333;
+  flex-shrink:0;letter-spacing:1px;
+}
+
+#log{
+  flex:1;overflow:hidden;
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  padding:4px 6px;
+}
+#loglines{display:flex;flex-direction:column;overflow:hidden}
+.line{white-space:pre;line-height:1.4;flex-shrink:0}
+.dim{color:#555}.green{color:#6f6}.red{color:#f66}.white{color:#fff}
+
+#answerblock{
+  flex-shrink:0;border-top:1px solid #333;
+  padding:3px 6px;max-height:68px;
+  overflow:hidden;display:flex;flex-direction:column-reverse;
+}
+#answerlines{display:flex;flex-direction:column-reverse}
+.aline{color:#6f6;font-size:13px;white-space:pre;line-height:1.3}
+
+#bottom{flex-shrink:0;border-top:1px solid #444;padding:4px 6px}
+#puzzleline{
+  font-size:17px;letter-spacing:3px;
+  color:#fff;white-space:pre;min-height:22px;margin-bottom:4px;
+}
+#inputline{display:flex;align-items:center;gap:6px;color:#888;font-size:14px}
+#inp{
+  background:transparent;border:none;outline:none;
+  color:#fff;font-family:'Courier New',Courier,monospace;
+  font-size:15px;caret-color:#fff;width:40px;text-transform:uppercase;
+}
+
+#status{
+  flex-shrink:0;font-size:11px;color:#444;
+  padding:1px 6px;border-top:1px solid #111;background:#050505;
+}
+
+#gameover{
+  display:none;position:fixed;inset:0;background:#000;
+  align-items:center;justify-content:center;z-index:99;
+}
+#gotext{color:#fff;font-size:26px;letter-spacing:4px;animation:gb .5s step-end infinite}
+@keyframes gb{50%{opacity:0}}
+@keyframes flash{0%,100%{opacity:1}33%,66%{opacity:0}}
+.flashing{animation:flash .7s steps(1) forwards}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="title">irresolvable? [Y/N]</div>
+  <div id="log"><div id="loglines"></div></div>
+  <div id="answerblock"><div id="answerlines"></div></div>
+  <div id="bottom">
+    <div id="puzzleline"></div>
+    <div id="inputline"><span>&gt;</span><input id="inp" maxlength="1" autocomplete="off" spellcheck="false" autofocus/></div>
+  </div>
+  <div id="status">loading dictionary...</div>
+</div>
+<div id="gameover"><div id="gotext">irresolvable?</div></div>
+
+<script>
+var dict=[], dictSet=new Set();
+var puzzle='', answers=[];
+var score=0, tabLevel=0, titleLines=0, locked=false;
+var MAX_TABS=9, TAB_SP=4;
+
+var titleEl=document.getElementById('title');
+var loglines=document.getElementById('loglines');
+var answerlines=document.getElementById('answerlines');
+var puzzleline=document.getElementById('puzzleline');
+var inp=document.getElementById('inp');
+var statusEl=document.getElementById('status');
+var gameoverEl=document.getElementById('gameover');
+
+function log(text,cls){
+  var d=document.createElement('div');
+  d.className='line'+(cls?' '+cls:'');
+  d.textContent=text;
+  loglines.appendChild(d);
+  trimLog();
+}
+function trimLog(){
+  var logEl=document.getElementById('log');
+  var lineH=Math.round(15*1.4);
+  var max=Math.floor(logEl.clientHeight/lineH);
+  while(loglines.children.length>max) loglines.removeChild(loglines.firstChild);
+}
+function addAnswer(word){
+  var d=document.createElement('div');
+  d.className='aline';
+  d.textContent='+ '+word.toUpperCase();
+  answerlines.prepend(d);
+  while(answerlines.children.length>5) answerlines.removeChild(answerlines.lastChild);
+}
+function setStatus(t){statusEl.textContent=t}
+
+// ── Dictionary ──────────────────────────────────────────────
+async function loadDict(){
+  setStatus('fetching dictionary...');
+  try{
+    var r=await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+    var t=await r.text();
+    dict=t.split('\n').map(function(w){return w.trim().toLowerCase()})
+      .filter(function(w){return w.length>=3&&w.length<=8&&/^[a-z]+$/.test(w)});
+    dictSet=new Set(dict);
+    setStatus('dictionary: '+dict.length.toLocaleString()+' words  |  Y = a word fits  |  N = no word fits');
+  }catch(e){
+    dict=FALLBACK; dictSet=new Set(dict);
+    setStatus('offline dictionary ('+dict.length+' words)  |  Y = a word fits  |  N = no word fits');
+  }
+  newPuzzle();
+}
+
+// ── Puzzle ───────────────────────────────────────────────────
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+  return a;
+}
+function makePuzzle(){
+  for(var att=0;att<300;att++){
+    var w=dict[Math.floor(Math.random()*dict.length)];
+    var n=w.length;
+    var blanks=Math.max(1,Math.floor(n*(0.3+Math.random()*0.35)));
+    var pos=shuffle([...Array(n).keys()]).slice(0,blanks);
+    var pat=w.split('');
+    for(var i=0;i<pos.length;i++) pat[pos[i]]='_';
+    if(pat.includes('_')) return pat.join('').toUpperCase();
+  }
+  return '_OT';
+}
+function findAnswers(pat){
+  var re=new RegExp('^'+pat.toLowerCase().replace(/_/g,'[a-z]')+'$');
+  return dict.filter(function(w){return re.test(w)});
+}
+function newPuzzle(){
+  tabLevel=0;
+  puzzle=makePuzzle();
+  answers=findAnswers(puzzle);
+  renderPuzzle();
+}
+function renderPuzzle(){
+  var prefix=' '.repeat(tabLevel*TAB_SP);
+  var sc=score>0?' +'+score:score<0?' '+score:'';
+  puzzleline.textContent=prefix+puzzle+sc;
+}
+
+// ── Input ────────────────────────────────────────────────────
+inp.addEventListener('keydown',function(e){
+  if(locked) return;
+  var key=e.key.toUpperCase();
+  if(key==='Y'||key==='N'){e.preventDefault();handleAnswer(key)}
+});
+
+function handleAnswer(key){
+  var hasWord=answers.length>0;
+  var correct=(key==='Y'&&hasWord)||(key==='N'&&!hasWord);
+  var prefix=' '.repeat(tabLevel*TAB_SP);
+  var sc=score>0?' +'+score:score<0?' '+score:'';
+  log(prefix+puzzle+sc,'dim');
+  log(prefix+'> '+key, correct?'green':'red');
+
+  if(correct){
+    score++;
+    if(key==='Y'){
+      addAnswer(answers[Math.floor(Math.random()*answers.length)]);
+    } else {
+      addAnswer('(none)');
+    }
+    tabLevel=Math.max(0,tabLevel-1);
+    inp.value='';
+    newPuzzle();
+  } else {
+    score=score-1;
+    tabLevel++;
+    inp.value='';
+    if(tabLevel>=MAX_TABS){
+      locked=true;
+      puzzleline.classList.add('flashing');
+      setTimeout(function(){
+        puzzleline.classList.remove('flashing');
+        puzzleline.textContent='';
+        advanceTitle();
+      },900);
+    } else {
+      renderPuzzle();
+    }
+  }
+}
+
+function advanceTitle(){
+  titleLines++;
+  // measure how many log lines fit
+  var logEl=document.getElementById('log');
+  var lineH=Math.round(15*1.4);
+  var available=Math.floor(logEl.clientHeight/lineH);
+  if(titleLines>available){
+    gameoverEl.style.display='flex';
+    locked=true;
+    return;
+  }
+  // grow the title bar downward by adding newlines
+  titleEl.textContent='irresolvable? [Y/N]'+'\n'.repeat(titleLines);
+  tabLevel=0; locked=false;
+  newPuzzle();
+}
+
+// ── Fallback dictionary ──────────────────────────────────────
+var FALLBACK=[
+'horse','house','mouse','worse','curse','nurse','purse','verse','parse','chase',
+'bend','band','bond','bind','fond','find','mind','wind','kind','land','hand','sand',
+'card','cart','care','dare','dark','lark','bark','mark','park','hard','harm','farm',
+'best','rest','test','nest','west','jest','pest','vest','zest','last','past','fast',
+'cold','bold','gold','hold','mold','sold','told','fold','wold','cord',
+'light','night','fight','right','might','tight','sight','white','bight',
+'dream','cream','steam','seam','beam','team','ream','gleam',
+'stone','tone','bone','cone','done','gone','lone','none','zone','hone','phone',
+'start','smart','chart','heart','dart','part','tart','mart',
+'green','greet','creek','creep','breed','freed','treed','steed','creed',
+'flame','blame','frame','shame','tame','game','name','same','came','lame','fame',
+'pride','bride','slide','glide','guide','tide','side','hide','wide','ride',
+'cloud','proud','loud','shroud','crowd',
+'brain','train','grain','drain','plain','main','pain','rain','vain','chain',
+'smile','while','pile','mile','file','tile','bile','vile','rile',
+'black','slack','crack','track','stack','snack','knack','hack','jack','rack',
+'drive','strive','thrive','alive','hive','dive','jive','live',
+'place','space','grace','trace','brace','race','face','lace','pace','mace',
+'break','steak','creak','freak','speak','sneak','weak','beak','leak','peak',
+'world','swirl','twirl','girl','curl','hurl','furl','pearl','earl','whorl',
+'plant','slant','grant','chant','rant','pant','cant','scan','plan','clan',
+'watch','match','catch','hatch','patch','latch','batch',
+'word','lord','ford','form','norm','dorm','worm','storm','born',
+'truth','youth','booth','tooth','south','route','mute','cute','lute',
+'field','yield','shield','wield','build','guild','child','mild','wild',
+'groan','grown','brown','crown','frown','drown','known','blown','shown',
+'think','drink','blink','brink','shrink','sink','link','rink','pink','wink',
+'spare','share','stare','flare','glare','snare','bare','care','dare','fare',
+'clown','down','gown','town','flown','sown',
+'spade','blade','trade','grade','shade','made','wade','jade','fade','aide',
+'flesh','fresh','mesh','bash','cash','clash','crash','dash','flash','trash',
+'brook','crook','shook','took','look','book','cook','hook','nook','rook',
+'steep','creep','sleep','sweep','deep','keep','jeep','weep','seep',
+'bunch','munch','crunch','lunch','punch','hunch','chunk','dunk','bunk','funk',
+'cling','fling','sling','bring','ring','sing','king','wing','thing','ding',
+'brush','crush','blush','flush','gush','hush','lush','mush','rush',
+'strip','drip','trip','grip','skip','ship','chip','dip','flip','hip','tip',
+'frost','cost','lost','post','most','host','ghost','boast','roast','toast',
+'plain','crane','crate','craze','cream','breed','crime','eight','empty',
+'fable','faint','fairy','faith','false','fancy','fatal','fault','feast',
+'glass','gleam','glide','gloom','glove','gnome','grade','grain','grant',
+'haven','heart','heavy','hedge','herbs','hinge','hoist','holly',
+'joust','judge','juice','juicy','jumbo','karma','knack','kneel','knife',
+'label','lance','large','laser','later','laugh','layer','leach','leaky',
+'magic','major','maker','manor','march','match','mayor','media','mercy','merge',
+'nails','naive','nerve','never','nexus','noble','noise','north',
+'orbit','order','other','outer','oxide','overt',
+'patch','pause','peace','pearl','pedal','phase','phone','photo','piano',
+'quack','queen','query','quest','quick','quiet',
+'radar','radio','raise','ranch','range','rapid','ratio','reach','react','realm',
+'safer','saint','salad','scale','scary','scene','scone','scope','scout','sense',
+'table','talon','taunt','thorn','three','threw','throw','thumb',
+'ultra','uncle','under','union','until','upper','urban',
+'valid','valor','valve','vapor','vault','video','vigor','viral','virus',
+'wafer','waist','waltz','waste','water','weave','wedge','weigh','whale',
+'yacht','yearn','yield','young','yours','zeal','zebra','zippy','zesty'
+];
+
+loadDict();
+</script>
+</body>
+</html>
