@@ -129,6 +129,51 @@ html,body{
   background:#050505;
 }
 
+/* Message box styles */
+#messagebox{
+  flex-shrink:0;
+  background:#0a0a0a;
+  border-top:1px solid #333;
+  padding:6px;
+  font-size:10px;
+  color:#666;
+}
+#messagebox input{
+  background:#111;
+  border:1px solid #333;
+  color:#ccc;
+  font-family:'Courier New',Courier,monospace;
+  font-size:10px;
+  padding:4px 6px;
+  width:70%;
+  margin-right:4px;
+}
+#messagebox button{
+  background:#111;
+  border:1px solid #333;
+  color:#ccc;
+  font-family:'Courier New',Courier,monospace;
+  font-size:10px;
+  padding:4px 8px;
+  cursor:pointer;
+}
+#messagebox button:active{
+  background:#333;
+}
+#messageDisplay{
+  margin-top:4px;
+  padding-top:4px;
+  border-top:1px dotted #333;
+  font-size:9px;
+  word-break:break-word;
+  max-height:50px;
+  overflow-y:auto;
+}
+.message-entry{
+  margin:2px 0;
+  color:#888;
+}
+
 #gameover{
   display:none;
   position:fixed;
@@ -253,6 +298,9 @@ html,body{
     height:70px;
     font-size:36px;
   }
+  #messagebox input{
+    width:65%;
+  }
 }
 </style>
 </head>
@@ -270,7 +318,7 @@ html,body{
 <div id="wrap">
   <div id="title">irresolvable? [Y/N]</div>
   <div id="topspacer" style="height:144px; flex-shrink:0;"></div>
-  <div id="instruction">what's a word? what's not? enter Y / N</div>
+  <div id="instruction">what's a word? what's not? ENTER or PRESS Y / N</div>
   <div id="topspacer"></div>
   <div id="puzzlerow"></div>
   <div id="puzzleline"></div>
@@ -278,6 +326,14 @@ html,body{
   <div id="answerrow"></div>
   <div id="answerblock"></div>
   <div id="status">loading Scrabble dictionary...</div>
+  
+  <!-- Message box at bottom -->
+  <div id="messagebox">
+    <span style="color:#6f6;">✎</span> BOZOIDS? H_TERS? Fake words? False negatives? Notes welcome:<br>
+    <input type="text" id="noteInput" maxlength="300" placeholder="type your note...">
+    <button id="submitNote">send</button>
+    <div id="messageDisplay"></div>
+  </div>
 </div>
 
 <div id="gameover">
@@ -603,6 +659,68 @@ window.addEventListener('resize', function(){
   renderAnswers();
 });
 
+// Message box functionality
+var messages = [];
+
+function loadMessages(){
+  try{
+    var saved = localStorage.getItem('irresolvable_notes');
+    if(saved) messages = JSON.parse(saved);
+  } catch(e){ messages = []; }
+  renderMessages();
+}
+
+function saveMessages(){
+  try{
+    var toSave = messages.slice(-20);
+    localStorage.setItem('irresolvable_notes', JSON.stringify(toSave));
+  } catch(e){}
+}
+
+function renderMessages(){
+  var container = document.getElementById('messageDisplay');
+  if(!container) return;
+  container.innerHTML = '';
+  var show = messages.slice(-8).reverse();
+  for(var i = 0; i < show.length; i++){
+    var div = document.createElement('div');
+    div.className = 'message-entry';
+    var date = new Date(show[i].timestamp);
+    var timeStr = date.toLocaleTimeString().slice(0,5);
+    div.textContent = timeStr + ' › ' + show[i].text;
+    container.appendChild(div);
+  }
+}
+
+function addMessage(text){
+  if(!text.trim()) return;
+  messages.push({
+    text: text.trim().slice(0,300),
+    timestamp: Date.now()
+  });
+  saveMessages();
+  renderMessages();
+}
+
+// Message box event listeners
+var submitBtn = document.getElementById('submitNote');
+var noteInput = document.getElementById('noteInput');
+if(submitBtn){
+  submitBtn.addEventListener('click', function(){
+    if(noteInput && noteInput.value.trim()){
+      addMessage(noteInput.value);
+      noteInput.value = '';
+    }
+  });
+}
+if(noteInput){
+  noteInput.addEventListener('keypress', function(e){
+    if(e.key === 'Enter'){
+      submitBtn.click();
+    }
+  });
+}
+
 // Curated fallback dictionary (real English words only)
 var TWL_FALLBACK = [
   'horse','house','mouse','worse','curse','nurse','bird','bard','bord','burd',
@@ -650,6 +768,8 @@ async function loadDict(){
   newPuzzle();
 }
 
+// Load messages and start
+loadMessages();
 loadDict();
 </script>
 </body>
