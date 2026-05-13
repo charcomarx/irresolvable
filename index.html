@@ -333,7 +333,7 @@ html,body{
     font-size:28px;
   }
   #answerblock{
-    column-count:2;
+    column-count:1;
     column-gap:5px;
     column-fill:auto;
     overflow-y:auto;
@@ -466,7 +466,6 @@ function renderPuzzle(){
 
 function applyRowPad(){
   var pad = rowPad > 0 ? '\n'.repeat(rowPad) : '';
-  answerRowEl.textContent = pad;
 }
 
 function addAnswer(text, link, wasCorrect){
