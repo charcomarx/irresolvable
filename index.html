@@ -90,12 +90,14 @@ html,body{
 }
 
 #answerblock{
-  flex:0;
+  flex:0 0 auto;
   padding:0 6px 4px 6px;
   column-count:3;
   column-gap:20px;
   overflow-y:auto;
+  max-height:35vh;
   min-height:100px;
+  width:100%;
 }
 
 .aline{
@@ -348,7 +350,7 @@ html,body{
 <div id="wrap">
  <div id="titleSpacer"></div>
 <div id="title"><span style="color:#000;">_NY L_ST W_RDZ? </span><span style="color:#000;">[Y/N]</span></div>
-<div id="instruction">what's a word? what's not? ENTER or PRESS Y / N</div>
+<div id="instruction">what's a WORD? what's NOT?</div>
 <div id="instruction">TYPE or SELECT Y / N</div>
 <div id="puzzleSpacer"></div>
 <div id="puzzlerow"></div>
@@ -385,7 +387,7 @@ var locked   = false;
 
 // Mobile detection for tabs
 var isMobile = window.innerWidth <= 600;
-var MAX_TABS = isMobile ? 5 : 9;
+var MAX_TABS = isMobile ? 3 : 3;
 var TAB_SP   = isMobile ? 2 : 4;
 
 var answerHistory = [];
