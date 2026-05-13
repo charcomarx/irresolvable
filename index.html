@@ -537,6 +537,7 @@ function findAnswers(pattern){
 // Generate IMPOSSIBLE puzzle - ONLY returns patterns with 0 dictionary matches
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
+    var recentPuzzles = [];
     var baseWord = dict[Math.floor(Math.random() * dict.length)];
     if(!baseWord) continue;
     
@@ -648,6 +649,12 @@ function newPuzzle(){
       answers = result.ans;
     }
   }
+  // Prevent exact repeats
+if(recentPuzzles.includes(puzzle)){
+  return newPuzzle(); // Try again
+}
+recentPuzzles.push(puzzle);
+if(recentPuzzles.length > 100) recentPuzzles.shift(); 
   
   renderPuzzle();
 }
