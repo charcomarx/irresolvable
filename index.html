@@ -359,7 +359,7 @@ html,body{
 
 <!-- Score left -->
 <div id="scorebox">0</div>
-
+<div id="highscore" style="position:fixed; top:65px; left:110px; font-size:20px; color:#6f6; font-weight:bold;">0</div>
 <!-- Y/N buttons right -->
 <div id="buttons">
   <button id="btnY">Y</button>
@@ -368,7 +368,7 @@ html,body{
 
 <div id="wrap">
  <div id="titleSpacer"></div>
-<div id="title">A_Y L_ST <span style="color:#f66;">WO_DZ</span>?</div>
+<div id="title">A _ Y    L _ S T   <span style="color:#f66;">W O _ D Z</span> ?</div>
 <div id="instruction">what's a WORD? what's NOT?</div>
 <div id="instruction">is <span style="color:#fff;">THIS</span> one?! select Y or N!</div>
 <div id="puzzleSpacer"></div>
@@ -431,6 +431,16 @@ function updateScoreDisplay(){
   } else {
     scoreBox.textContent = '0';
     scoreBox.className = 'zero';
+  }
+  updateHighScore(); 
+}
+
+var highScore = 0;
+
+function updateHighScore(){
+  if(score > highScore){
+    highScore = score;
+    document.getElementById('highscore').textContent = highScore;
   }
 }
 
