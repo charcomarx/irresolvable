@@ -75,7 +75,7 @@ html,body{
 
 #gap{
   flex:1;
-  min-height:20px;
+  min-height:5px;
 }
 
 #answerrow{
@@ -646,17 +646,20 @@ function dropLine(){
   newPuzzle();
   renderAnswers();
 }
-
-// Keyboard input
+// Keyboard input - ignore if message box is focused
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
   if(k !== 'Y' && k !== 'N') return;
+  
+  // Don't trigger if message box input is focused
+  if(document.activeElement && document.activeElement.id === 'noteInput') return;
+  
   e.preventDefault();
   e.stopImmediatePropagation();
   if(locked) return;
   handleAnswer(k === 'Y');
 }, true);
-
+  
 // Touch button input
 document.getElementById('btnY').addEventListener('click', function(){
   if(!locked) handleAnswer(true);
