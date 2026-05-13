@@ -49,14 +49,15 @@ html,body{
 }
 
 #titleSpacer{
-  height:120px;
+  height:60px;
   flex-shrink:0;
 }
 
 #puzzleSpacer{
-  height:120px;
+  height:60px;
   flex-shrink:0;
 }
+  
 #puzzlerow{
   flex-shrink:0;
   white-space:pre;
@@ -89,12 +90,12 @@ html,body{
 }
 
 #answerblock{
-  flex:0;
-  max-height:40vh;
-  overflow-y:auto;
+  flex:1;
   padding:0 6px 4px 6px;
   column-count:3;
   column-gap:20px;
+  overflow-y:auto;
+  min-height:100px;
 }
 
 .aline{
@@ -137,11 +138,9 @@ html,body{
   flex-shrink:0;
   font-size:11px;
   color:#fff;
-  padding:4px 6px;
+  padding:1px 6px;
   border-top:1px solid #fff;
-  border-bottom:1px solid #fff;
   background:#000;
-  margin-bottom:0;
 }
 
 #gameover{
@@ -333,7 +332,7 @@ html,body{
 </div>
 
 <div id="wrap">
-<div id="titleSpacer"></div>
+ <div id="titleSpacer"></div>
 <div id="title"><span style="color:#000;">_NY L_ST W_RDZ? </span><span style="color:#000;">[Y/N]</span></div>
 <div id="instruction">what's a word? what's not? ENTER or PRESS Y / N</div>
 <div id="puzzleSpacer"></div>
@@ -341,11 +340,9 @@ html,body{
 <div id="puzzleline"></div>
   <div id="gap"></div>
   <div id="answerrow"></div>
-
-    <div id="answerblock"></div>
+  <div id="answerblock"></div>
+  <div id="status">loading Scrabble dictionary...</div>
 </div>
-
-<div id="status">loading Scrabble dictionary...</div>
 
 <div id="gameover">
   <div id="gotext">_NY L_ST W_RDZ?</div>
