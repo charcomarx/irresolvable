@@ -715,18 +715,23 @@ function addMessage(text){
 // Message box event listeners
 var submitBtn = document.getElementById('submitNote');
 var noteInput = document.getElementById('noteInput');
+
+// Prevent Y/N from triggering when typing in message box
+if(noteInput){
+  noteInput.addEventListener('keydown', function(e){
+    e.stopPropagation();
+  });
+  noteInput.addEventListener('keypress', function(e){
+    if(e.key === 'Enter'){
+      submitBtn.click();
+    }
+  });
+}
 if(submitBtn){
   submitBtn.addEventListener('click', function(){
     if(noteInput && noteInput.value.trim()){
       addMessage(noteInput.value);
       noteInput.value = '';
-    }
-  });
-}
-if(noteInput){
-  noteInput.addEventListener('keypress', function(e){
-    if(e.key === 'Enter'){
-      submitBtn.click();
     }
   });
 }
