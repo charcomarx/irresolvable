@@ -86,6 +86,7 @@ html,body{
 
 <script>
 var dict = [];
+var dictSet = new Set();
 var puzzle = '', answers = [];
 
 var score    = 0;
@@ -176,81 +177,108 @@ function findAnswers(pattern){
   } catch(e){ return []; }
 }
 
-// Generate a random pattern with blanks
-function generateRandomPattern(){
-  var lengths = [4,5,6,7];
-  var len = lengths[Math.floor(Math.random() * lengths.length)];
-  var blankCount = Math.floor(Math.random() * (len - 2)) + 1; // 1 to len-2 blanks
+// Generate plausible non-words that LOOK like English
+// These are constructed from real English morphemes but don't form actual words
+var NONWORD_STARTS = ['NOT', 'WH', 'TH', 'SH', 'CH', 'PH', 'GH', 'QU', 'SP', 'ST', 'SL', 'SN', 'SW', 'GR', 'BR', 'CR', 'DR', 'FR', 'PR', 'TR', 'BL', 'CL', 'FL', 'GL', 'PL'];
+var NONWORD_MIDDLES = ['O', 'A', 'E', 'I', 'U', 'OO', 'EE', 'OU', 'IO', 'EA', 'IA', 'OE'];
+var NONWORD_ENDS = ['RD', 'ND', 'NT', 'NK', 'MP', 'LD', 'LT', 'RK', 'LK', 'RP', 'RT', 'RN', 'RM', 'RF', 'RV', 'RZ', 'LZ', 'NZ', 'X', 'Z', 'K', 'T', 'P', 'S'];
+
+function generateNonWord(){
+  var length = 5 + Math.floor(Math.random() * 3); // 5-7 letters
+  var result = [];
   
-  // Start with all underscores
-  var pattern = [];
-  for(var i = 0; i < len; i++) pattern.push('_');
+  // Pick a plausible start
+  var start = NONWORD_STARTS[Math.floor(Math.random() * NONWORD_STARTS.length)];
+  result.push(start);
   
-  // Fill some positions with random consonants (to make it look plausible)
-  var consonants = 'BCDFGHKLMNPQRSTVWXYZ';
-  var filled = 0;
-  var targetFilled = len - blankCount;
+  // Add middle
+  var middle = NONWORD_MIDDLES[Math.floor(Math.random() * NONWORD_MIDDLES.length)];
+  result.push(middle);
   
-  // Prioritize filling first and last positions (words typically start/end with consonants)
-  if(targetFilled > 0 && pattern[0] === '_'){
-    pattern[0] = consonants[Math.floor(Math.random() * consonants.length)];
-    filled++;
-  }
-  if(targetFilled > 1 && pattern[len-1] === '_'){
-    pattern[len-1] = consonants[Math.floor(Math.random() * consonants.length)];
-    filled++;
-  }
+  // Add end
+  var end = NONWORD_ENDS[Math.floor(Math.random() * NONWORD_ENDS.length)];
+  result.push(end);
   
-  // Fill remaining positions randomly
-  var positions = [];
-  for(var i = 0; i < len; i++){
-    if(pattern[i] === '_') positions.push(i);
-  }
-  positions = shuffle(positions);
-  for(var i = 0; i < positions.length && filled < targetFilled; i++){
-    var useVowel = Math.random() < 0.3; // 30% chance vowel
-    if(useVowel){
-      var vowels = 'AEIOU';
-      pattern[positions[i]] = vowels[Math.floor(Math.random() * vowels.length)];
-    } else {
-      pattern[positions[i]] = consonants[Math.floor(Math.random() * consonants.length)];
-    }
-    filled++;
+  var nonword = result.join('').toLowerCase();
+  
+  // Ensure it's NOT in dictionary
+  if(dictSet.has(nonword)){
+    // Modify slightly
+    var chars = nonword.split('');
+    var idx = Math.floor(Math.random() * chars.length);
+    chars[idx] = chars[idx] === 'a' ? 'o' : (chars[idx] === 'e' ? 'i' : 'a');
+    nonword = chars.join('');
   }
   
-  return pattern.join('');
+  return nonword.toUpperCase();
 }
 
-// Generate a puzzle with EXACTLY the specified number of answers (or 0 for impossible)
-function generatePuzzleWithAnswerCount(targetCount){
-  for(var attempt = 0; attempt < 500; attempt++){
-    var pattern = generateRandomPattern();
-    var matches = findAnswers(pattern);
-    if(targetCount === 0 && matches.length === 0){
-      return {pat: pattern, ans: []};
+function generateImpossible(){
+  for(var attempt = 0; attempt < 100; attempt++){
+    // Start with a non-word
+    var nonword = generateNonWord();
+    var chars = nonword.split('');
+    
+    // Blank out 1-3 positions
+    var blankCount = 1 + Math.floor(Math.random() * Math.min(3, chars.length - 1));
+    var positions = [];
+    for(var i = 0; i < chars.length; i++) positions.push(i);
+    positions = shuffle(positions).slice(0, blankCount);
+    
+    for(var i = 0; i < positions.length; i++){
+      chars[positions[i]] = '_';
     }
-    if(targetCount > 0 && matches.length >= 1 && matches.length <= 8){
+    var pattern = chars.join('');
+    
+    // Verify no dictionary word matches
+    var matches = findAnswers(pattern);
+    if(matches.length === 0){
+      return pattern;
+    }
+  }
+  
+  // Fallback guaranteed impossible patterns
+  var fallbacks = ['_OT_ORD', '_H_NT_N', 'WH_T_R', 'TH_R_FT', 'N_WH_R'];
+  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+}
+
+function generateSolvable(){
+  for(var attempt = 0; attempt < 200; attempt++){
+    var word = dict[Math.floor(Math.random() * dict.length)];
+    if(word.length < 4 || word.length > 7) continue;
+    
+    var chars = word.split('');
+    var blankCount = Math.floor(Math.random() * (word.length - 2)) + 1;
+    var positions = [];
+    for(var i = 0; i < chars.length; i++) positions.push(i);
+    positions = shuffle(positions).slice(0, blankCount);
+    
+    for(var i = 0; i < positions.length; i++){
+      chars[positions[i]] = '_';
+    }
+    var pattern = chars.join('').toUpperCase();
+    var matches = findAnswers(pattern);
+    
+    if(matches.length >= 1 && matches.length <= 4){
       return {pat: pattern, ans: matches};
     }
   }
-  // Fallback
-  if(targetCount === 0){
-    return {pat: 'Z_XK_Q', ans: []};
-  } else {
-    return {pat: 'H_RSE', ans: ['horse','house']};
-  }
+  
+  return {pat: 'H_RSE', ans: ['horse','house','mouse','worse','parse']};
 }
 
 function newPuzzle(){
+  if(dict.length === 0){
+    setTimeout(newPuzzle, 100);
+    return;
+  }
+  
   // 50/50 split
   if(Math.random() < 0.5){
-    // Generate IMPOSSIBLE (0 answers)
-    var result = generatePuzzleWithAnswerCount(0);
-    puzzle = result.pat;
-    answers = result.ans;
+    puzzle = generateImpossible();
+    answers = [];
   } else {
-    // Generate SOLVABLE (1-8 answers)
-    var result = generatePuzzleWithAnswerCount(1);
+    var result = generateSolvable();
     puzzle = result.pat;
     answers = result.ans;
   }
@@ -261,7 +289,6 @@ function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   
-  // Reveal word if exists
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase());
@@ -329,20 +356,23 @@ window.addEventListener('resize', function(){
   renderAnswers();
 });
 
-var FALLBACK = ['horse','house','mouse','worse','bird','bard','cat','cot','cut','fox','fix','wolf','crank','blade','grass'];
+var FALLBACK = ['horse','house','mouse','worse','bird','bard','cat','cot','cut'];
 
 async function loadDict(){
-  setStatus('fetching 170k word dictionary...');
+  setStatus('fetching 170k English words...');
   try{
     var r = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
     var t = await r.text();
-    dict = t.split('\n')
-      .map(function(w){ return w.trim().toLowerCase(); })
-      .filter(function(w){ return w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w); });
-    setStatus('✓ ' + dict.length.toLocaleString() + ' words | 50/50 solvable/impossible | Y/N');
+    var words = t.split('\n').map(function(w){ return w.trim().toLowerCase(); });
+    dict = words.filter(function(w){ 
+      return w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w);
+    });
+    dictSet = new Set(dict);
+    setStatus('✓ ' + dict.length.toLocaleString() + ' English words | 50/50 | Y/N');
   } catch(e){
     dict = FALLBACK;
-    setStatus('offline mode - ' + dict.length + ' words');
+    dictSet = new Set(dict);
+    setStatus('offline - ' + dict.length + ' words');
   }
   newPuzzle();
 }
