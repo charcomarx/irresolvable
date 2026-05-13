@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>_NY L_ST WO_DZ?</title>
+<title>A_Y L_ST WO_DZ?</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{
@@ -169,9 +169,9 @@ html,body{
   50%{opacity:0}
 }
 
-@keyframes flash{
+  @keyframes flash{
   0%,100%{opacity:1}
-  25%,75%{opacity:0}
+  20%,80%{opacity:0}
 }
 
 .flashing{
@@ -313,15 +313,35 @@ html,body{
     height:10px;
   }
   #title{
-    font-size:25px;
-    padding-right:100px;
+    font-size:20px;
+    padding:4px 6px;
+    text-align:center;
+    width:100%;
   }
   #puzzleline{
-    font-size:50px;
+    font-size:40px;
     letter-spacing:1px;
   }
   .aline{
     font-size:14px;
+  }
+  #scorebox{
+    width:80px;
+    height:90px;
+    font-size:48px;
+  }
+  #buttons button{
+    width:80px;
+    height:70px;
+    font-size:36px;
+  }
+  #answerblock{
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .aline{
+    white-space:normal;
+    word-break:break-word;
   }
   #scorebox{
     width:60px;
@@ -352,7 +372,7 @@ html,body{
 
 <div id="wrap">
  <div id="titleSpacer"></div>
-<div id="title">_NY<br>L_ST<br>WO_DZ?</div>
+<div id="title">A_Y<br>L_ST<br>WO_DZ?</div>
 <div id="instruction">what's a WORD? what's NOT?</div>
 <div id="instruction">is THIS one?! select Y or N!</div>
 <div id="puzzleSpacer"></div>
@@ -367,7 +387,7 @@ html,body{
   <div id="status">loading Scrabble dictionary...</div>
 
   <div id="gameover">
-  <div id="gotext">_NY L_ST W_RDZ?</div>
+  <div id="gotext">A_Y L_ST W_RDZ?</div>
 </div>
 
 <!-- Message box at bottom - FIXED POSITION -->
@@ -617,22 +637,27 @@ function handleAnswer(userSaysYes){
       score = -1;
       tabLevel = 1;
     }
-    
+
     if(tabLevel >= MAX_TABS){
-      locked = true;
-      puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.textContent = '';
-        dropLine();
-      }, 1000);
-    } else {
-      newPuzzle();
+  locked = true;
+  var flashCount = 0;
+  var flashInterval = setInterval(function(){
+    puzzleEl.classList.toggle('flashing');
+    flashCount++;
+    if(flashCount >= 6){ // 6 toggles = 3 full flashes (on/off/on/off/on/off)
+      clearInterval(flashInterval);
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.textContent = '';
+      dropLine();
     }
+  }, 150);
+} else {
+  newPuzzle();
   }
+  
   updateScoreDisplay();
 }
-
+  
 function dropLine(){
   rowPad++;
   applyRowPad();
