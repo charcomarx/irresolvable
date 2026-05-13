@@ -826,7 +826,7 @@ async function loadDict(){
         var t = await r.text();
         var rawWords = t.split('\n').map(function(w){ return w.trim().toLowerCase(); });
         dict = rawWords.filter(function(w){ 
-          return w.length >= 3 && w.length <= 7 && /^[a-z]+$/.test(w);
+          return w.length >= 3 && w.length <= 10 && /^[a-z]+$/.test(w);
         });
         if(dict.length > 1000){
           loaded = true;
