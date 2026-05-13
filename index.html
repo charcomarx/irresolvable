@@ -23,6 +23,24 @@ html,body{
   height:100%;
 }
 
+#highscore{
+  position:fixed;
+  top:55px;
+  left:110px;
+  font-size:10px;
+  color:#f66;
+  font-weight:bold;
+}
+
+#highscoreNumber{
+  position:fixed;
+  top:75px;
+  left:110px;
+  font-size:25px;
+  color:#6f6;
+  font-weight:bold;
+}
+  
 #title{
   background:#fff;
   color:#000;
@@ -357,12 +375,11 @@ html,body{
   top:110px;
   left:10px;
   font-size:8px;
-  }
-  #highscoreNumber{
+}
+#highscoreNumber{
   top:125px;
   left:10px;
   font-size:18px;
-  }
 }
 </style>
 </head>
@@ -374,8 +391,8 @@ html,body{
 <div id="instruction">Get it WRONG and lose your SCORE!</div>
 <!-- Score left -->
 <div id="scorebox">0</div>
-<div id="highscore" style="position:fixed; top:55px; left:110px; font-size:10px; color:#f66; font-weight:bold;">HIGH<br>SCORE</div>
-<div id="highscoreNumber" style="position:fixed; top:75px; left:110px; font-size:25px; color:#000; font-weight:bold;">0</div>
+<div id="highscore">HIGH<br>SCORE</div>
+<div id="highscoreNumber">0</div>  
   <!-- Y/N buttons right -->
 <div style="position:fixed; top:400px; right:2px; color:#fff; font-size:20px; font-weight:bold; z-index:102; text-align:center;">⬆️ TAP HERE</div>
   <div id="buttons">
