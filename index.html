@@ -339,7 +339,6 @@ html,body{
     overflow-y:auto;
     overflow-x:hidden;
     width:100%;
-    display:block;
     padding:0 4px 4px 4px;
   }
   .aline{
@@ -348,6 +347,8 @@ html,body{
     word-break:break-word;
     break-inside:avoid;
     margin:1px 0;
+    display:block;
+    width:100%;
   }
   #messagebox input{
     width:65%;
@@ -376,7 +377,7 @@ html,body{
 <div id="highscore" style="position:fixed; top:55px; left:110px; font-size:10px; color:#f66; font-weight:bold;">HIGH<br>SCORE</div>
 <div id="highscoreNumber" style="position:fixed; top:75px; left:110px; font-size:25px; color:#000; font-weight:bold;">0</div>
   <!-- Y/N buttons right -->
-<div style="position:fixed; top:400px; right:40px; color:#fff; font-size:20px; font-weight:bold; z-index:102; text-align:center;">⬆️ TAP HERE</div>
+<div style="position:fixed; top:400px; right:2px; color:#fff; font-size:20px; font-weight:bold; z-index:102; text-align:center;">⬆️ TAP HERE</div>
   <div id="buttons">
   <button id="btnY">Y</button>
   <button id="btnN">N</button>
@@ -465,7 +466,7 @@ function renderPuzzle(){
 
 function applyRowPad(){
   var pad = rowPad > 0 ? '\n'.repeat(rowPad) : '';
-  puzzleRowEl.textContent = pad;
+  answerRowEl.textContent = pad;
 }
 
 function addAnswer(text, link, wasCorrect){
