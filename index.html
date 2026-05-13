@@ -40,7 +40,6 @@ html,body{
   text-align:center;
   font-size:18px;
   padding:2px 6px;
-  border-bottom:1px solid #fff;
   flex-shrink:0;
   white-space:nowrap;
 }
@@ -316,15 +315,12 @@ html,body{
   #title{
     font-size:20px;
     padding:4px 6px;
-    text-align:right;
+    text-align:center;
     width:100%;
   }
   #puzzleline{
     font-size:40px;
     letter-spacing:1px;
-  }
-  .aline{
-    font-size:14px;
   }
   #scorebox{
     width:100px;
@@ -336,18 +332,20 @@ html,body{
     height:70px;
     font-size:36px;
   }
+  #answerblock{
+    column-count:2;
+    column-gap:8px;
+    column-fill:auto;
+    overflow-y:auto;
+    overflow-x:hidden;
+    width:100%;
+  }
   .aline{
+    font-size:14px;
     white-space:normal;
     word-break:break-word;
-    font-size:14px;
+    break-inside:avoid;
   }
-  #answerblock{
-  column-count:2;
-  column-fill:auto
-  column-gap:5px;
-  overflow-y:auto;
-  overflow-x:hidden;
-}
   #messagebox input{
     width:65%;
   }
@@ -357,9 +355,10 @@ html,body{
 <body>
 
 <div id="title">A _ Y  ...<br>L A _ T  ...<br><span style="color:#f66;">W O _ D Z</span><br>... ?</div>
-<div id="instruction">what IZZA WORD? WOT'S NOT?</div>
-<div id="instruction">is <span style="color:#fff;">THIS</span> one?! select Y or N!</div>
-<div id="instruction">get it <span style="color:#f66;">WRONG</span> and start again!</div>
+<div id="instruction">What IZZA word? WOT'S not?!</div>
+<div id="instruction">Is <span style="color:#fff;">THIS</span> one?! Select Y or N!</div>
+<div id="instruction">Get them <span style="color:#f66;">WRONG</span> and lose your SCORE!</div>
+<div id="instruction">Get MORE <span style="color:#f66;">wrong</span> and lose your SPACE!</div>
 <!-- Score left -->
 <div id="scorebox">0</div>
 <div id="highscore" style="position:fixed; top:55px; left:110px; font-size:10px; color:#f66; font-weight:bold;">HIGH<br>SCORE</div>
