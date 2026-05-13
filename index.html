@@ -466,26 +466,29 @@ function renderPuzzle(){
 
 function applyRowPad(){
   var pad = rowPad > 0 ? '\n'.repeat(rowPad) : '';
+  puzzleRowEl.textContent = pad;
 }
 
-function addAnswer(text, link, wasCorrect){
-  answerHistory.unshift({text: text, link: link || null, correct: wasCorrect});
+function addAnswer(text, link, color){
+  answerHistory.unshift({text: text, link: link || null, color: color});
   renderAnswers();
 }
 
 function renderAnswers(){
   answerEl.innerHTML = '';
-  // Show ALL answers, no limit
   for(var i = 0; i < answerHistory.length; i++){
     var entry = answerHistory[i];
     var d = document.createElement('div');
-    d.className = 'aline ' + (entry.correct ? 'correct' : 'incorrect');
+    d.className = 'aline';
+    d.style.color = entry.color;
     if(entry.link){
       var a = document.createElement('a');
       a.href = entry.link;
       a.target = '_blank';
       a.rel = 'noopener';
       a.textContent = entry.text;
+      a.style.color = entry.color;
+      a.style.borderBottomColor = entry.color;
       d.appendChild(a);
     } else {
       d.textContent = entry.text;
@@ -627,11 +630,20 @@ function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   
+  // Determine color based on correctness and what user answered
+  var answerColor;
+  if(correct){
+    answerColor = 'white';
+  } else {
+    // Incorrect: if user said Y (wrongly said yes to no word) = red, if user said N (wrongly said no to real word) = green
+    answerColor = userSaysYes ? '#f66' : '#6f6';
+  }
+  
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
-    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), correct);
+    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), answerColor);
   } else {
-    addAnswer(puzzle, null, correct);
+    addAnswer(puzzle, null, answerColor);
   }
   
   if(correct){
@@ -643,15 +655,15 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-  if(score < 0){
-    tabLevel++;
-  } else {
-    score = -1;
-    tabLevel = 1;
-  }
-  
-  // Show tab shift immediately
-  renderPuzzle();
+    if(score < 0){
+      tabLevel++;
+    } else {
+      score = -1;
+      tabLevel = 1;
+    }
+    
+    // Show tab shift immediately
+    renderPuzzle();
     
     if(tabLevel >= MAX_TABS){
       locked = true;
