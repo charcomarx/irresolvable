@@ -36,7 +36,7 @@ html,body{
 
 #instruction{
   color:#6f6;
-  font-size:12px;
+  font-size:18px;
   padding:2px 6px;
   border-bottom:1px solid #fff;
   flex-shrink:0;
@@ -90,7 +90,7 @@ html,body{
 }
 
 #answerblock{
-  flex:1;
+  flex:0;
   padding:0 6px 4px 6px;
   column-count:3;
   column-gap:20px;
@@ -220,8 +220,6 @@ html,body{
 
 #buttons button{
   background:#000;
-  color:#fff;
-  border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:48px;
   font-weight:bold;
@@ -233,8 +231,24 @@ html,body{
   touch-action:manipulation;
 }
 
-#buttons button:active{
-  background:#fff;
+#buttons button#btnY{
+  color:#6f6;
+  border:2px solid #6f6;
+}
+
+#buttons button#btnN{
+  color:#f66;
+  border:2px solid #f66;
+}
+
+#buttons button#btnY:active{
+  background:#6f6;
+  color:#000;
+  transform:scale(0.96);
+}
+
+#buttons button#btnN:active{
+  background:#f66;
   color:#000;
   transform:scale(0.96);
 }
@@ -335,6 +349,7 @@ html,body{
  <div id="titleSpacer"></div>
 <div id="title"><span style="color:#000;">_NY L_ST W_RDZ? </span><span style="color:#000;">[Y/N]</span></div>
 <div id="instruction">what's a word? what's not? ENTER or PRESS Y / N</div>
+<div id="instruction">TYPE or SELECT Y / N</div>
 <div id="puzzleSpacer"></div>
 <div id="puzzlerow"></div>
 <div id="puzzleline"></div>
