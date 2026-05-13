@@ -368,7 +368,7 @@ html,body{
 
 <div id="wrap">
  <div id="titleSpacer"></div>
-<div id="title">A_Y L_ST WO_DZ?</div>
+<div id="title">A_Y L_ST <span style="color:#f66;">WO_DZ</span>?</div>
 <div id="instruction">what's a WORD? what's NOT?</div>
 <div id="instruction">is THIS one?! select Y or N!</div>
 <div id="puzzleSpacer"></div>
@@ -634,16 +634,19 @@ function handleAnswer(userSaysYes){
       tabLevel = 1;
     }
     
-    if(tabLevel >= MAX_TABS){
-      locked = true;
-      puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.textContent = '';
-        dropLine();
-      }, 1000);
-    } else {
-      newPuzzle();
+   if(tabLevel >= MAX_TABS){
+  locked = true;
+  puzzleEl.classList.add('flashing');
+  setTimeout(function(){
+    puzzleEl.classList.remove('flashing');
+    puzzleEl.textContent = '';
+    rowPad = rowPad + 15;  // Drop 15px worth of lines (adjust as needed)
+    applyRowPad();
+    dropLine();
+  }, 1000);
+} else {
+  newPuzzle();
+}
     }
   }
   updateScoreDisplay();
