@@ -634,18 +634,16 @@ function handleAnswer(userSaysYes){
       tabLevel = 1;
     }
     
-   if(tabLevel >= MAX_TABS){
-  locked = true;
-  puzzleEl.classList.add('flashing');
-  setTimeout(function(){
-    puzzleEl.classList.remove('flashing');
-    puzzleEl.textContent = '';
-    rowPad = rowPad + 15;  // Drop 15px worth of lines (adjust as needed)
-    applyRowPad();
-    dropLine();
-  }, 1000);
-} else {
-  newPuzzle();
+    if(tabLevel >= MAX_TABS){
+      locked = true;
+      puzzleEl.classList.add('flashing');
+      setTimeout(function(){
+        puzzleEl.classList.remove('flashing');
+        puzzleEl.textContent = '';
+        dropLine();
+      }, 1000);
+    } else {
+      newPuzzle();
 }
     }
   }
