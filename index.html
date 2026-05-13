@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>irresolvable?</title>
+<title>_NY L_ST W_RDZ?</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{
   width:100%;height:100%;
-  background:#000;color:#ccc;
+  background:#000;
+  color:#fff;
   font-family:'Courier New',Courier,monospace;
   font-size:14px;
   line-height:1.3;
@@ -23,20 +24,24 @@ html,body{
 }
 
 #title{
-  color:#fff;
+  background:#fff;
+  color:#000;
   white-space:nowrap;
-  padding:2px 6px;
-  border-bottom:1px solid #333;
+  padding:4px 6px;
   flex-shrink:0;
   font-size:18px;
   letter-spacing:0;
+  font-weight:bold;
+}
+#title .green{
+  color:#6f6;
 }
 
 #instruction{
   color:#6f6;
   font-size:12px;
   padding:2px 6px;
-  border-bottom:1px solid #333;
+  border-bottom:1px solid #fff;
   flex-shrink:0;
   white-space:nowrap;
 }
@@ -108,16 +113,16 @@ html,body{
 
 .aline.correct a{
   color:#6f6;
-  border-bottom-color:#3a3;
+  border-bottom-color:#6f6;
 }
 
 .aline.incorrect a{
   color:#f66;
-  border-bottom-color:#a33;
+  border-bottom-color:#f66;
 }
 
 .aline a:hover{
-  color:#aff;
+  color:#fff;
 }
 
 #status{
@@ -125,53 +130,8 @@ html,body{
   font-size:11px;
   color:#fff;
   padding:1px 6px;
-  border-top:1px solid #111;
-  background:#050505;
-}
-
-/* Message box styles */
-#messagebox{
-  flex-shrink:0;
-  background:#0a0a0a;
-  border-top:1px solid #333;
-  padding:6px;
-  font-size:10px;
-  color:#fff;
-}
-#messagebox input{
-  background:#111;
-  border:1px solid #333;
-  color:#fff;
-  font-family:'Courier New',Courier,monospace;
-  font-size:10px;
-  padding:4px 6px;
-  width:70%;
-  margin-right:4px;
-}
-#messagebox button{
-  background:#111;
-  border:1px solid #333;
-  color:#fff;
-  font-family:'Courier New',Courier,monospace;
-  font-size:10px;
-  padding:4px 8px;
-  cursor:pointer;
-}
-#messagebox button:active{
-  background:#333;
-}
-#messageDisplay{
-  margin-top:4px;
-  padding-top:4px;
-  border-top:1px dotted #333;
-  font-size:9px;
-  word-break:break-word;
-  max-height:50px;
-  overflow-y:auto;
-}
-.message-entry{
-  margin:2px 0;
-  color:#fff;
+  border-top:1px solid #fff;
+  background:#000;
 }
 
 #gameover{
@@ -205,17 +165,13 @@ html,body{
 }
 
 /* Top controls: Score left, Y/N buttons right */
-#topcontrols{
+#scorebox{
   position:fixed;
   top:2px;
   left:4px;
-  z-index:100;
-}
-
-#scorebox{
-  background:#111;
-  color:#ccc;
-  border:2px solid #333;
+  background:#000;
+  color:#fff;
+  border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:48px;
   font-weight:bold;
@@ -226,21 +182,22 @@ html,body{
   align-items:center;
   justify-content:center;
   text-align:center;
+  z-index:100;
 }
 
 #scorebox.positive{
   color:#6f6;
-  border-color:#3a3;
+  border-color:#6f6;
 }
 
 #scorebox.negative{
   color:#f66;
-  border-color:#a33;
+  border-color:#f66;
 }
 
 #scorebox.zero{
   color:#fff;
-  border-color:#333;
+  border-color:#fff;
 }
 
 #buttons{
@@ -253,9 +210,9 @@ html,body{
 }
 
 #buttons button{
-  background:#111;
-  color:#ccc;
-  border:2px solid #333;
+  background:#000;
+  color:#fff;
+  border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:48px;
   font-weight:bold;
@@ -268,25 +225,61 @@ html,body{
 }
 
 #buttons button:active{
-  background:#333;
-  color:#fff;
+  background:#fff;
+  color:#000;
   transform:scale(0.96);
 }
 
-@media (max-width: 600px){
-  #scorebox{
-    width:60px;
-    height:70px;
-    font-size:36px;
-  }
-  #buttons button{
-    width:80px;
-    height:70px;
-    font-size:36px;
-  }
+/* Message box - fixed at bottom */
+#messagebox{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#000;
+  border-top:2px solid #fff;
+  padding:6px;
+  font-size:10px;
+  color:#fff;
+  z-index:101;
+}
+#messagebox input{
+  background:#000;
+  border:1px solid #fff;
+  color:#fff;
+  font-family:'Courier New',Courier,monospace;
+  font-size:16px;
+  padding:4px 6px;
+  width:70%;
+  margin-right:4px;
+}
+#messagebox button{
+  background:#000;
+  border:1px solid #fff;
+  color:#fff;
+  font-family:'Courier New',Courier,monospace;
+  font-size:10px;
+  padding:4px 8px;
+  cursor:pointer;
+}
+#messagebox button:active{
+  background:#fff;
+  color:#000;
+}
+#messageDisplay{
+  margin-top:4px;
+  padding-top:4px;
+  border-top:1px dotted #fff;
+  font-size:9px;
+  word-break:break-word;
+  max-height:50px;
+  overflow-y:auto;
+}
+.message-entry{
+  margin:2px 0;
+  color:#fff;
 }
 
-/* Mobile adjustments */
 @media (max-width: 600px){
   #topspacer{
     height:120px;
@@ -320,16 +313,18 @@ html,body{
 </head>
 <body>
 
-<!-- Top right controls: Score + Y/N buttons (TRIPLE SIZE) -->
+<!-- Score left -->
 <div id="scorebox">0</div>
+
+<!-- Y/N buttons right -->
 <div id="buttons">
   <button id="btnY">Y</button>
   <button id="btnN">N</button>
 </div>
 
 <div id="wrap">
-   <div id="topspacer" style="height:144px; flex-shrink:0;"></div>
-  <div id="title"> _NY L_ST W_RDZ ? [Y/N]</div>
+  <div id="topspacer" style="height:144px; flex-shrink:0;"></div>
+  <div id="title"><span style="color:#000;">_NY L_ST W_RDZ? </span><span style="color:#000;">[Y/N]</span></div>
   <div id="instruction">what's a word? what's not? ENTER or PRESS Y / N</div>
   <div id="topspacer"></div>
   <div id="puzzlerow"></div>
@@ -338,23 +333,23 @@ html,body{
   <div id="answerrow"></div>
   <div id="answerblock"></div>
   <div id="status">loading Scrabble dictionary...</div>
-  
-  <!-- Message box at bottom -->
-  <div id="messagebox">
-    <span style="color:#fff;">✎</span> BOZOIDS? H_TERS? Fake words? False negatives? Notes welcome:<br>
-    <input type="text" id="noteInput" maxlength="300" placeholder="type note..." style="font-size:16px;">
-    <button id="submitNote">send</button>
-    <div id="messageDisplay"></div>
-  </div>
 </div>
 
 <div id="gameover">
-  <div id="gotext">irresolvable?</div>
+  <div id="gotext">_NY L_ST W_RDZ?</div>
+</div>
+
+<!-- Message box at bottom - FIXED POSITION -->
+<div id="messagebox">
+  <span style="color:#fff;">✎</span> BOZOIDS? H_TERS? Fake words? False negatives? Notes welcome:<br>
+  <input type="text" id="noteInput" maxlength="300" placeholder="type note..." style="font-size:16px;">
+  <button id="submitNote">send</button>
+  <div id="messageDisplay"></div>
 </div>
 
 <script>
 var dict = [];
-var puzzle = '', answers = [];
+var puzzle = '', answers = '';
 
 var score    = 0;
 var tabLevel = 0;
@@ -676,7 +671,7 @@ var messages = [];
 
 function loadMessages(){
   try{
-    var saved = localStorage.getItem('irresolvable_notes');
+    var saved = localStorage.getItem('anywordz_notes');
     if(saved) messages = JSON.parse(saved);
   } catch(e){ messages = []; }
   renderMessages();
@@ -685,7 +680,7 @@ function loadMessages(){
 function saveMessages(){
   try{
     var toSave = messages.slice(-20);
-    localStorage.setItem('irresolvable_notes', JSON.stringify(toSave));
+    localStorage.setItem('anywordz_notes', JSON.stringify(toSave));
   } catch(e){}
 }
 
@@ -765,7 +760,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + ' real words. CLick to discover.');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' real words. Click to discover.');
         }
       }
     } catch(e){}
