@@ -336,10 +336,6 @@ html,body{
     height:70px;
     font-size:36px;
   }
-  #answerblock{
-    overflow-y:auto;
-    overflow-x:hidden;
-  }
   .aline{
     white-space:normal;
     word-break:break-word;
@@ -347,7 +343,10 @@ html,body{
   }
   #answerblock{
   column-count:2;
+  column-fill:auto
   column-gap:5px;
+  overflow-y:auto;
+  overflow-x:hidden;
 }
   #messagebox input{
     width:65%;
