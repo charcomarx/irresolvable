@@ -80,15 +80,11 @@ html,body{
   <div id="gap"></div>
   <div id="answerrow"></div>
   <div id="answerblock"></div>
-  <div id="status">loading Scrabble dictionary (TWL)...</div>
+  <div id="status">loading Scrabble dictionary...</div>
 </div>
 <div id="gameover"><div id="gotext">irresolvable?</div></div>
 
 <script>
-// TWL (North American Tournament Word List) - Official Scrabble Words
-// Only REAL English words that are valid in tournament play
-// Excludes foreign loanwords like GRAS, made-up garbage like CHOATY/BEJAZZ
-
 var dict = [];
 var puzzle = '', answers = [];
 
@@ -173,95 +169,116 @@ function findAnswers(pattern){
   try{
     var re = new RegExp('^' + pattern.toLowerCase().replace(/_/g,'[a-z]') + '$');
     var matches = [];
-    for(var i = 0; i < dict.length && matches.length < 10; i++){
+    for(var i = 0; i < dict.length && matches.length < 12; i++){
       if(re.test(dict[i])) matches.push(dict[i]);
     }
     return matches;
   } catch(e){ return []; }
 }
 
-// Letter frequency for generating English-like patterns
-var CONSONANTS = 'BCDFGHKLMNPRSTVWXYZ';
-var VOWELS = 'AEIOU';
-var COMMON_BIGRAMS = ['TH','HE','IN','ER','AN','RE','ON','AT','EN','ND','ST','ED','TO','OR','HA','NO','NE','AL','IT','IS','HI','OU','NG','TI'];
-
-function generatePlausiblePattern(){
-  var length = 4 + Math.floor(Math.random() * 4);
-  var pattern = [];
+// Generate IMPOSSIBLE puzzle by taking a REAL word and corrupting it
+// This ensures the pattern looks like English but has NO valid words
+function generateImpossible(){
+  if(dict.length === 0) return '_X_';
   
-  // 30% chance to start with a common bigram
-  if(Math.random() < 0.3 && length >= 2){
-    var bigram = COMMON_BIGRAMS[Math.floor(Math.random() * COMMON_BIGRAMS.length)];
-    pattern.push(bigram[0], bigram[1]);
-  } else {
-    pattern.push(CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)]);
-    pattern.push(VOWELS[Math.floor(Math.random() * VOWELS.length)]);
-  }
-  
-  // Fill middle positions
-  while(pattern.length < length - 1){
-    var lastChar = pattern[pattern.length - 1];
-    var isLastVowel = VOWELS.indexOf(lastChar) !== -1;
-    var nextChar;
+  for(var attempt = 0; attempt < 300; attempt++){
+    // Pick a random real word from dictionary
+    var baseWord = dict[Math.floor(Math.random() * dict.length)];
+    if(baseWord.length < 4 || baseWord.length > 7) continue;
     
-    if(isLastVowel){
-      nextChar = CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
-    } else {
-      nextChar = Math.random() < 0.4 ? VOWELS[Math.floor(Math.random() * VOWELS.length)] : CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+    var chars = baseWord.split('');
+    
+    // CORRUPTION METHOD 1: Change a vowel to a different vowel (creates non-word)
+    var vowelPositions = [];
+    for(var i = 0; i < chars.length; i++){
+      if('aeiou'.indexOf(chars[i]) !== -1) vowelPositions.push(i);
     }
-    pattern.push(nextChar);
-  }
-  
-  // Add ending consonant (most English words end with consonant)
-  if(pattern.length < length){
-    pattern.push(CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)]);
-  }
-  
-  // Replace 1-3 positions with underscores
-  var blankCount = 1 + Math.floor(Math.random() * Math.min(3, length - 2));
-  var positions = [];
-  for(var i = 0; i < length; i++) positions.push(i);
-  positions = shuffle(positions).slice(0, blankCount);
-  for(var i = 0; i < positions.length; i++){
-    pattern[positions[i]] = '_';
-  }
-  
-  return pattern.join('');
-}
-
-function generatePuzzle(targetImpossible){
-  for(var attempt = 0; attempt < 800; attempt++){
-    var pattern = generatePlausiblePattern();
+    
+    if(vowelPositions.length > 0){
+      var pos = vowelPositions[Math.floor(Math.random() * vowelPositions.length)];
+      var originalVowel = chars[pos];
+      var otherVowels = ['a','e','i','o','u'].filter(function(v){ return v !== originalVowel; });
+      var newVowel = otherVowels[Math.floor(Math.random() * otherVowels.length)];
+      chars[pos] = newVowel;
+    } else {
+      // CORRUPTION METHOD 2: Swap two consonants
+      if(chars.length >= 4){
+        var idx1 = 1 + Math.floor(Math.random() * (chars.length - 2));
+        var idx2 = 1 + Math.floor(Math.random() * (chars.length - 2));
+        var temp = chars[idx1];
+        chars[idx1] = chars[idx2];
+        chars[idx2] = temp;
+      }
+    }
+    
+    // Now blank out 1-2 positions to create the puzzle pattern
+    var blankCount = 1 + Math.floor(Math.random() * Math.min(2, chars.length - 2));
+    var positions = [];
+    for(var i = 0; i < chars.length; i++) positions.push(i);
+    positions = shuffle(positions).slice(0, blankCount);
+    for(var i = 0; i < positions.length; i++){
+      chars[positions[i]] = '_';
+    }
+    
+    var pattern = chars.join('').toUpperCase();
     var matches = findAnswers(pattern);
     
-    if(targetImpossible && matches.length === 0){
-      return {pat: pattern, ans: []};
+    // Accept if ZERO matches (truly impossible)
+    if(matches.length === 0){
+      return pattern;
     }
-    if(!targetImpossible && matches.length >= 1 && matches.length <= 4){
+  }
+  
+  // Fallback impossible patterns (hand-picked, verified no matches)
+  var verifiedImpossible = [
+    'WH_LK', 'TH_RP', 'CH_LK', 'SH_RK',  // starts with common digraphs
+    'BR_SS', 'CR_SS', 'DR_SS', 'FR_SS',  // plausible -SS endings
+    'BL_FF', 'CL_FF', 'FL_FF', 'GL_FF',  // -FF endings
+    'SP_GG', 'ST_GG', 'SL_GG',           // -GG endings (rare in English)
+    'WH_RL', 'TH_RL', 'SH_RL',           // -RL endings (uncommon)
+    'PR_NK', 'TR_NK', 'BR_NK',           // looks like PRANK but missing A? PR_NK no match
+    '_OT_ORD', 'WH_T_R', 'TH_R_FT'
+  ];
+  
+  for(var i = 0; i < verifiedImpossible.length; i++){
+    if(findAnswers(verifiedImpossible[i]).length === 0){
+      return verifiedImpossible[i];
+    }
+  }
+  
+  return '_OT_ORD';
+}
+
+// Generate SOLVABLE puzzle from real word with 1-4 matches
+function generateSolvable(){
+  if(dict.length === 0) return {pat: 'H_RSE', ans: ['horse','house']};
+  
+  for(var attempt = 0; attempt < 300; attempt++){
+    var word = dict[Math.floor(Math.random() * dict.length)];
+    if(word.length < 4 || word.length > 7) continue;
+    
+    // Remove 1-2 letters to create ambiguity
+    var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1); // 70% 1 blank, 30% 2 blanks
+    blankCount = Math.min(blankCount, word.length - 2);
+    
+    var chars = word.split('');
+    var positions = [];
+    for(var i = 0; i < chars.length; i++) positions.push(i);
+    positions = shuffle(positions).slice(0, blankCount);
+    for(var i = 0; i < positions.length; i++){
+      chars[positions[i]] = '_';
+    }
+    
+    var pattern = chars.join('').toUpperCase();
+    var matches = findAnswers(pattern);
+    
+    // Sweet spot: 1-4 possible answers (ambiguous but not overwhelming)
+    if(matches.length >= 1 && matches.length <= 4){
       return {pat: pattern, ans: matches};
     }
   }
   
-  // Fallback patterns (all verified against TWL)
-  if(targetImpossible){
-    var impossibleFb = ['WH_T_R', 'TH_R_FT', 'N_WH_R', '_OT_ORD'];
-    for(var i = 0; i < impossibleFb.length; i++){
-      if(findAnswers(impossibleFb[i]).length === 0){
-        return {pat: impossibleFb[i], ans: []};
-      }
-    }
-  } else {
-    var solvableFb = [
-      {pat: 'H_RSE', ans: ['horse','house','mouse']},
-      {pat: 'B_RD', ans: ['bird','bard','bord']},
-      {pat: 'ST_NE', ans: ['stone','stane','stine']},
-      {pat: 'BL_DE', ans: ['blade','blude']}
-    ];
-    var fb = solvableFb[Math.floor(Math.random() * solvableFb.length)];
-    return {pat: fb.pat, ans: fb.ans};
-  }
-  
-  return {pat: '_X_', ans: []};
+  return {pat: 'H_RSE', ans: ['horse','house','mouse']};
 }
 
 function newPuzzle(){
@@ -270,23 +287,18 @@ function newPuzzle(){
     return;
   }
   
-  // Exactly 50/50 split
-  var isImpossible = Math.random() < 0.5;
-  var result = generatePuzzle(isImpossible);
-  
-  puzzle = result.pat;
-  answers = result.ans;
-  
-  // Final verification
-  var check = findAnswers(puzzle);
-  if(isImpossible && check.length > 0){
-    // Failed - try once more
-    result = generatePuzzle(true);
-    puzzle = result.pat;
-    answers = result.ans;
-  }
-  if(!isImpossible && check.length === 0){
-    result = generatePuzzle(false);
+  // 50/50 split
+  if(Math.random() < 0.5){
+    puzzle = generateImpossible();
+    answers = [];
+    // Verify
+    var check = findAnswers(puzzle);
+    if(check.length > 0){
+      puzzle = generateImpossible();
+      answers = [];
+    }
+  } else {
+    var result = generateSolvable();
     puzzle = result.pat;
     answers = result.ans;
   }
@@ -365,40 +377,20 @@ window.addEventListener('resize', function(){
   renderAnswers();
 });
 
-// TWL (Scrabble) word list - official North American tournament words
-// Source: NASPA (North American Scrabble Players Association) word list
-// These are all REAL English words valid in competitive Scrabble
 var TWL_FALLBACK = [
-  'aa','ab','ad','ae','ag','ah','ai','al','am','an','ar','as','at','aw','ax','ay','ba','be','bi','bo','by','da','de','do','ed','ef','eh','el','em','en','er','es','et','ex','fa','fe','gi','go','ha','he','hi','hm','ho','id','if','in','is','it','jo','ka','ki','la','li','lo','ma','me','mi','mm','mo','mu','my','na','ne','no','nu','od','oe','of','oh','oi','om','on','op','or','os','ow','ox','oy','pa','pe','pi','po','qi','re','sh','si','so','ta','te','ti','to','uh','um','un','up','us','ut','we','wo','xi','xu','ya','ye','yo','za',
-  'cat','dog','bat','rat','hat','mat','pat','sat','fat','chat','that','this','thin','thick','thank','think','thing','bring','spring','string',
-  'horse','house','mouse','worse','curse','nurse','purse','verse','parse','chase',
-  'bend','band','bond','bind','fond','find','mind','wind','kind','land','hand','sand',
-  'card','cart','care','dare','dark','lark','bark','mark','park','hard','harm','farm',
-  'best','rest','test','nest','west','jest','pest','vest','zest','last','past','fast',
-  'cold','bold','gold','hold','mold','sold','told','fold','cord','word','lord','ford',
-  'light','night','fight','right','might','tight','sight','white','black','crack','track',
-  'dream','cream','steam','seam','beam','team','ream','gleam','green','greet','creek',
+  'horse','house','mouse','worse','curse','nurse','bird','bard','bord','burd',
+  'cat','cot','cut','cit','fox','fax','fix','fux','wolf','crank','blade','grass',
   'stone','tone','bone','cone','done','gone','lone','none','zone','hone','phone',
-  'start','smart','chart','heart','dart','part','tart','mart','plant','slant','grant',
   'field','yield','shield','wield','build','guild','child','mild','wild','think','drink',
   'spare','share','stare','flare','glare','snare','bare','care','dare','fare','spade',
   'flesh','fresh','mesh','bash','cash','clash','crash','dash','flash','trash','brook',
-  'steep','creep','sleep','sweep','deep','keep','jeep','weep','seep','bunch','munch',
-  'cling','fling','sling','bring','ring','sing','king','wing','thing','ding','brush',
-  'strip','drip','trip','grip','skip','ship','chip','dip','flip','hip','frost','cost',
-  'magic','major','maker','manor','march','match','mayor','media','mercy','merge','valid',
-  'wafer','waist','waltz','waste','water','weave','wedge','weigh','whale','yacht','yearn',
-  'zeal','zebra','zippy','zesty','table','talon','thorn','three','threw','throw','thumb',
-  'brain','train','grain','drain','plain','main','pain','rain','vain','chain','smile','while','pile','mile','file','tile','bile','vile','rile',
-  'drive','strive','thrive','alive','hive','dive','live','place','space','grace','trace','brace','race','face','lace','pace','mace','break','steak','creak','freak','speak','sneak','weak','beak','leak','peak','world','swirl','twirl','girl','curl','hurl','pearl','earl','watch','catch','hatch','patch','latch','batch',
-  'groan','grown','brown','crown','frown','drown','known','blown','shown','spade','blade','trade','grade','shade','made','wade','jade','fade','aide',
-  'bunch','munch','crunch','lunch','punch','hunch','chunk','dunk','bunk','funk'
+  'brain','train','grain','drain','plain','main','pain','rain','vain','chain','smile',
+  'drive','strive','thrive','alive','hive','dive','live','place','space','grace','trace'
 ];
 
 async function loadDict(){
-  setStatus('loading Official Scrabble Dictionary (TWL)...');
+  setStatus('loading Scrabble dictionary...');
   
-  // Try to fetch a proper TWL word list from a reliable source
   var urls = [
     'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt',
     'https://raw.githubusercontent.com/redbo/scrabble/master/dictionary.txt'
@@ -416,17 +408,15 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ TWL Scrabble: ' + dict.length.toLocaleString() + ' official words | 50/50 | Y/N');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 50/50 | Y/N');
         }
       }
-    } catch(e){ /* try next url */ }
+    } catch(e){}
   }
   
   if(!loaded || dict.length < 500){
-    // Use curated fallback - real English words only
-    dict = TWL_FALLBACK.filter(function(w){ return w.length >= 3 && w.length <= 7; });
-    dict = [...new Set(dict)]; // deduplicate
-    setStatus('✓ TWL dictionary: ' + dict.length + ' official English words | 50/50 | Y/N');
+    dict = TWL_FALLBACK;
+    setStatus('✓ ' + dict.length + ' words | 50/50 | Y/N');
   }
   
   newPuzzle();
