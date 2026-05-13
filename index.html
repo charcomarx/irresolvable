@@ -97,10 +97,10 @@ html,body{
   column-count:3;
   column-gap:20px;
   overflow-y:auto;
-  max-height:35vh;
-  min-height:80px;
+  height:180px;
+  flex-shrink:0;
 }
-
+  
 .aline{
   font-size:16px;
   white-space:nowrap;
@@ -139,7 +139,7 @@ html,body{
 
 #status{
   position:fixed;
-  bottom:80px;
+  bottom:100px;
   left:0;
   right:0;
   font-size:11px;
@@ -351,11 +351,11 @@ html,body{
 <div id="puzzleline"></div>
   <div id="gap"></div>
   <div id="answerrow"></div>
-  <div id="answerblock"></div>
+    <div id="answerblock"></div>
+  </div>
 
-</div>
-  
   <div id="status">loading Scrabble dictionary...</div>
+
 
   <div id="gameover">
   <div id="gotext">_NY L_ST W_RDZ?</div>
