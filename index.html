@@ -31,6 +31,10 @@ html,body{
   color:#fff;white-space:pre;
   padding:4px 6px 2px 6px;
   min-height:24px;
+  transition: color 0.1s ease;
+}
+#puzzleline.warning{
+  color:#f66;
 }
 
 #gap{flex:1}
@@ -45,13 +49,27 @@ html,body{
   overflow:hidden;
 }
 .aline{
-  color:#6f6;font-size:14px;
+  font-size:14px;
   white-space:pre;line-height:1.4;
+  margin:2px 0;
+}
+.aline.correct{
+  color:#6f6;
+}
+.aline.incorrect{
+  color:#f66;
 }
 .aline a{
-  color:#6f6;
   text-decoration:none;
-  border-bottom:1px solid #3a3;
+  border-bottom:1px solid;
+}
+.aline.correct a{
+  color:#6f6;
+  border-bottom-color:#3a3;
+}
+.aline.incorrect a{
+  color:#f66;
+  border-bottom-color:#a33;
 }
 .aline a:hover{
   color:#aff;
@@ -95,7 +113,7 @@ var locked   = false;
 
 var MAX_TABS = 9;
 var TAB_SP   = 4;
-var answerHistory = [];
+var answerHistory = []; // each entry: {text, link, correct}
 
 var titleEl    = document.getElementById('title');
 var puzzleRowEl= document.getElementById('puzzlerow');
@@ -110,6 +128,13 @@ function renderPuzzle(){
   var prefix = ' '.repeat(tabLevel * TAB_SP);
   var sc = (tabLevel === 0 && score > 0) ? ' +' + score : '';
   puzzleEl.textContent = prefix + puzzle + sc;
+  
+  // Turn red when in tab position (any wrong answer has pushed it)
+  if(tabLevel >= 1){
+    puzzleEl.classList.add('warning');
+  } else {
+    puzzleEl.classList.remove('warning');
+  }
 }
 
 function applyRowPad(){
@@ -118,8 +143,8 @@ function applyRowPad(){
   answerRowEl.textContent = pad;
 }
 
-function addAnswer(text, link){
-  answerHistory.unshift({text: text, link: link || null});
+function addAnswer(text, link, wasCorrect){
+  answerHistory.unshift({text: text, link: link || null, correct: wasCorrect});
   renderAnswers();
 }
 
@@ -132,7 +157,7 @@ function renderAnswers(){
   for(var i = 0; i < show.length; i++){
     var entry = show[i];
     var d = document.createElement('div');
-    d.className = 'aline';
+    d.className = 'aline ' + (entry.correct ? 'correct' : 'incorrect');
     if(entry.link){
       var a = document.createElement('a');
       a.href = entry.link;
@@ -176,19 +201,17 @@ function findAnswers(pattern){
   } catch(e){ return []; }
 }
 
-// Generate IMPOSSIBLE puzzle by taking a REAL word and corrupting it
-// This ensures the pattern looks like English but has NO valid words
+// Generate IMPOSSIBLE puzzle (30% of puzzles)
 function generateImpossible(){
   if(dict.length === 0) return '_X_';
   
   for(var attempt = 0; attempt < 300; attempt++){
-    // Pick a random real word from dictionary
     var baseWord = dict[Math.floor(Math.random() * dict.length)];
     if(baseWord.length < 4 || baseWord.length > 7) continue;
     
     var chars = baseWord.split('');
     
-    // CORRUPTION METHOD 1: Change a vowel to a different vowel (creates non-word)
+    // Corruption: change a vowel to a different vowel
     var vowelPositions = [];
     for(var i = 0; i < chars.length; i++){
       if('aeiou'.indexOf(chars[i]) !== -1) vowelPositions.push(i);
@@ -201,7 +224,7 @@ function generateImpossible(){
       var newVowel = otherVowels[Math.floor(Math.random() * otherVowels.length)];
       chars[pos] = newVowel;
     } else {
-      // CORRUPTION METHOD 2: Swap two consonants
+      // Swap two consonants
       if(chars.length >= 4){
         var idx1 = 1 + Math.floor(Math.random() * (chars.length - 2));
         var idx2 = 1 + Math.floor(Math.random() * (chars.length - 2));
@@ -211,7 +234,7 @@ function generateImpossible(){
       }
     }
     
-    // Now blank out 1-2 positions to create the puzzle pattern
+    // Blank out 1-2 positions
     var blankCount = 1 + Math.floor(Math.random() * Math.min(2, chars.length - 2));
     var positions = [];
     for(var i = 0; i < chars.length; i++) positions.push(i);
@@ -223,21 +246,15 @@ function generateImpossible(){
     var pattern = chars.join('').toUpperCase();
     var matches = findAnswers(pattern);
     
-    // Accept if ZERO matches (truly impossible)
     if(matches.length === 0){
       return pattern;
     }
   }
   
-  // Fallback impossible patterns (hand-picked, verified no matches)
+  // Fallback verified impossible patterns
   var verifiedImpossible = [
-    'WH_LK', 'TH_RP', 'CH_LK', 'SH_RK',  // starts with common digraphs
-    'BR_SS', 'CR_SS', 'DR_SS', 'FR_SS',  // plausible -SS endings
-    'BL_FF', 'CL_FF', 'FL_FF', 'GL_FF',  // -FF endings
-    'SP_GG', 'ST_GG', 'SL_GG',           // -GG endings (rare in English)
-    'WH_RL', 'TH_RL', 'SH_RL',           // -RL endings (uncommon)
-    'PR_NK', 'TR_NK', 'BR_NK',           // looks like PRANK but missing A? PR_NK no match
-    '_OT_ORD', 'WH_T_R', 'TH_R_FT'
+    'WH_LK', 'TH_RP', 'CH_LK', 'BR_SS', 'CR_SS', 'DR_SS',
+    'SP_GG', 'ST_GG', 'WH_RL', 'PR_NK', 'TR_NK', '_OT_ORD'
   ];
   
   for(var i = 0; i < verifiedImpossible.length; i++){
@@ -249,7 +266,7 @@ function generateImpossible(){
   return '_OT_ORD';
 }
 
-// Generate SOLVABLE puzzle from real word with 1-4 matches
+// Generate SOLVABLE puzzle (70% of puzzles)
 function generateSolvable(){
   if(dict.length === 0) return {pat: 'H_RSE', ans: ['horse','house']};
   
@@ -257,8 +274,7 @@ function generateSolvable(){
     var word = dict[Math.floor(Math.random() * dict.length)];
     if(word.length < 4 || word.length > 7) continue;
     
-    // Remove 1-2 letters to create ambiguity
-    var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1); // 70% 1 blank, 30% 2 blanks
+    var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1);
     blankCount = Math.min(blankCount, word.length - 2);
     
     var chars = word.split('');
@@ -272,7 +288,6 @@ function generateSolvable(){
     var pattern = chars.join('').toUpperCase();
     var matches = findAnswers(pattern);
     
-    // Sweet spot: 1-4 possible answers (ambiguous but not overwhelming)
     if(matches.length >= 1 && matches.length <= 4){
       return {pat: pattern, ans: matches};
     }
@@ -287,11 +302,12 @@ function newPuzzle(){
     return;
   }
   
-  // 50/50 split
-  if(Math.random() < 0.5){
+  // 70% solvable, 30% impossible
+  var isImpossible = Math.random() < 0.3;
+  
+  if(isImpossible){
     puzzle = generateImpossible();
     answers = [];
-    // Verify
     var check = findAnswers(puzzle);
     if(check.length > 0){
       puzzle = generateImpossible();
@@ -310,11 +326,13 @@ function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   
+  // Add to answer list with color coding
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
-    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase());
+    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), correct);
   } else {
-    addAnswer('-', null);
+    // Show "-" for impossible puzzles, color based on whether user was correct
+    addAnswer('-', null, correct);
   }
   
   if(correct){
@@ -379,13 +397,13 @@ window.addEventListener('resize', function(){
 
 var TWL_FALLBACK = [
   'horse','house','mouse','worse','curse','nurse','bird','bard','bord','burd',
-  'cat','cot','cut','cit','fox','fax','fix','fux','wolf','crank','blade','grass',
-  'stone','tone','bone','cone','done','gone','lone','none','zone','hone','phone',
-  'field','yield','shield','wield','build','guild','child','mild','wild','think','drink',
-  'spare','share','stare','flare','glare','snare','bare','care','dare','fare','spade',
-  'flesh','fresh','mesh','bash','cash','clash','crash','dash','flash','trash','brook',
-  'brain','train','grain','drain','plain','main','pain','rain','vain','chain','smile',
-  'drive','strive','thrive','alive','hive','dive','live','place','space','grace','trace'
+  'cat','cot','cut','fox','fax','fix','wolf','crank','blade','grass','stone',
+  'tone','bone','cone','done','gone','lone','none','zone','hone','phone','field',
+  'yield','shield','wield','build','guild','child','mild','wild','think','drink',
+  'spare','share','stare','flare','glare','snare','bare','care','dare','fare',
+  'flesh','fresh','mesh','bash','cash','clash','crash','dash','flash','trash',
+  'brain','train','grain','drain','plain','main','pain','rain','vain','chain',
+  'drive','strive','thrive','alive','hive','dive','live','place','space','grace'
 ];
 
 async function loadDict(){
@@ -408,7 +426,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 50/50 | Y/N');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake | Y/N');
         }
       }
     } catch(e){}
@@ -416,7 +434,7 @@ async function loadDict(){
   
   if(!loaded || dict.length < 500){
     dict = TWL_FALLBACK;
-    setStatus('✓ ' + dict.length + ' words | 50/50 | Y/N');
+    setStatus('✓ ' + dict.length + ' words | 70/30 | Y/N');
   }
   
   newPuzzle();
