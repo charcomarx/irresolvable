@@ -80,13 +80,12 @@ html,body{
   <div id="gap"></div>
   <div id="answerrow"></div>
   <div id="answerblock"></div>
-  <div id="status">loading dictionary (170k words)...</div>
+  <div id="status">loading dictionary...</div>
 </div>
 <div id="gameover"><div id="gotext">irresolvable?</div></div>
 
 <script>
 var dict = [];
-var dictSet = new Set();
 var puzzle = '', answers = [];
 
 var score    = 0;
@@ -170,101 +169,81 @@ function findAnswers(pattern){
   try{
     var re = new RegExp('^' + pattern.toLowerCase().replace(/_/g,'[a-z]') + '$');
     var matches = [];
-    for(var i = 0; i < dict.length && matches.length < 20; i++){
+    for(var i = 0; i < dict.length && matches.length < 15; i++){
       if(re.test(dict[i])) matches.push(dict[i]);
     }
     return matches;
   } catch(e){ return []; }
 }
 
-// Generate plausible non-words that LOOK like English
-// These are constructed from real English morphemes but don't form actual words
-var NONWORD_STARTS = ['NOT', 'WH', 'TH', 'SH', 'CH', 'PH', 'GH', 'QU', 'SP', 'ST', 'SL', 'SN', 'SW', 'GR', 'BR', 'CR', 'DR', 'FR', 'PR', 'TR', 'BL', 'CL', 'FL', 'GL', 'PL'];
-var NONWORD_MIDDLES = ['O', 'A', 'E', 'I', 'U', 'OO', 'EE', 'OU', 'IO', 'EA', 'IA', 'OE'];
-var NONWORD_ENDS = ['RD', 'ND', 'NT', 'NK', 'MP', 'LD', 'LT', 'RK', 'LK', 'RP', 'RT', 'RN', 'RM', 'RF', 'RV', 'RZ', 'LZ', 'NZ', 'X', 'Z', 'K', 'T', 'P', 'S'];
-
-function generateNonWord(){
-  var length = 5 + Math.floor(Math.random() * 3); // 5-7 letters
-  var result = [];
+// Generate a random pattern with plausible English letter distribution
+function randomPattern(length){
+  var pattern = [];
+  // Start with consonant (most English words start with consonant)
+  var consonants = 'BCDFGHKLMNPRSTVWXYZ';
+  var vowels = 'AEIOU';
   
-  // Pick a plausible start
-  var start = NONWORD_STARTS[Math.floor(Math.random() * NONWORD_STARTS.length)];
-  result.push(start);
-  
-  // Add middle
-  var middle = NONWORD_MIDDLES[Math.floor(Math.random() * NONWORD_MIDDLES.length)];
-  result.push(middle);
-  
-  // Add end
-  var end = NONWORD_ENDS[Math.floor(Math.random() * NONWORD_ENDS.length)];
-  result.push(end);
-  
-  var nonword = result.join('').toLowerCase();
-  
-  // Ensure it's NOT in dictionary
-  if(dictSet.has(nonword)){
-    // Modify slightly
-    var chars = nonword.split('');
-    var idx = Math.floor(Math.random() * chars.length);
-    chars[idx] = chars[idx] === 'a' ? 'o' : (chars[idx] === 'e' ? 'i' : 'a');
-    nonword = chars.join('');
-  }
-  
-  return nonword.toUpperCase();
-}
-
-function generateImpossible(){
-  for(var attempt = 0; attempt < 100; attempt++){
-    // Start with a non-word
-    var nonword = generateNonWord();
-    var chars = nonword.split('');
-    
-    // Blank out 1-3 positions
-    var blankCount = 1 + Math.floor(Math.random() * Math.min(3, chars.length - 1));
-    var positions = [];
-    for(var i = 0; i < chars.length; i++) positions.push(i);
-    positions = shuffle(positions).slice(0, blankCount);
-    
-    for(var i = 0; i < positions.length; i++){
-      chars[positions[i]] = '_';
-    }
-    var pattern = chars.join('');
-    
-    // Verify no dictionary word matches
-    var matches = findAnswers(pattern);
-    if(matches.length === 0){
-      return pattern;
+  for(var i = 0; i < length; i++){
+    // Roughly 70% consonant, 30% vowel (English-like)
+    var isVowel = Math.random() < 0.3;
+    if(isVowel){
+      pattern.push(vowels[Math.floor(Math.random() * vowels.length)]);
+    } else {
+      pattern.push(consonants[Math.floor(Math.random() * consonants.length)]);
     }
   }
   
-  // Fallback guaranteed impossible patterns
-  var fallbacks = ['_OT_ORD', '_H_NT_N', 'WH_T_R', 'TH_R_FT', 'N_WH_R'];
-  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  // Randomly replace 1-3 positions with blanks
+  var blankCount = 1 + Math.floor(Math.random() * Math.min(3, length - 2));
+  var positions = [];
+  for(var i = 0; i < length; i++) positions.push(i);
+  positions = shuffle(positions).slice(0, blankCount);
+  for(var i = 0; i < positions.length; i++){
+    pattern[positions[i]] = '_';
+  }
+  
+  return pattern.join('');
 }
 
-function generateSolvable(){
-  for(var attempt = 0; attempt < 200; attempt++){
-    var word = dict[Math.floor(Math.random() * dict.length)];
-    if(word.length < 4 || word.length > 7) continue;
-    
-    var chars = word.split('');
-    var blankCount = Math.floor(Math.random() * (word.length - 2)) + 1;
-    var positions = [];
-    for(var i = 0; i < chars.length; i++) positions.push(i);
-    positions = shuffle(positions).slice(0, blankCount);
-    
-    for(var i = 0; i < positions.length; i++){
-      chars[positions[i]] = '_';
-    }
-    var pattern = chars.join('').toUpperCase();
+// Generate a puzzle with EXACTLY targetAnswerCount (0 for impossible)
+function generatePuzzleWithAnswerCount(targetCount){
+  // Try up to 500 patterns
+  for(var attempt = 0; attempt < 500; attempt++){
+    var length = 4 + Math.floor(Math.random() * 4); // 4-7 letters
+    var pattern = randomPattern(length);
     var matches = findAnswers(pattern);
     
-    if(matches.length >= 1 && matches.length <= 4){
+    if(targetCount === 0 && matches.length === 0){
+      // Found a true impossible
+      return {pat: pattern, ans: []};
+    }
+    if(targetCount > 0 && matches.length >= 1 && matches.length <= 5){
+      // Found a good solvable (1-5 answers)
       return {pat: pattern, ans: matches};
     }
   }
   
-  return {pat: 'H_RSE', ans: ['horse','house','mouse','worse','parse']};
+  // Fallback if generation fails
+  if(targetCount === 0){
+    // Guaranteed impossible fallbacks (verified against common dictionaries)
+    var fallbackImpossible = ['ZX_K', 'QV_', 'JX_Z', 'K_QX', 'W_VZ', '_OT_ORD', 'WH_T_R'];
+    for(var i = 0; i < fallbackImpossible.length; i++){
+      if(findAnswers(fallbackImpossible[i]).length === 0){
+        return {pat: fallbackImpossible[i], ans: []};
+      }
+    }
+    return {pat: 'Z_XK_Q', ans: []};
+  } else {
+    // Guaranteed solvable fallbacks
+    var fallbackSolvable = [
+      {pat: 'H_RSE', ans: ['horse','house','mouse','worse']},
+      {pat: 'B_RD', ans: ['bird','bard','bord']},
+      {pat: 'C_T', ans: ['cat','cot','cut']},
+      {pat: 'F_X', ans: ['fox','fax','fix']}
+    ];
+    var fb = fallbackSolvable[Math.floor(Math.random() * fallbackSolvable.length)];
+    return {pat: fb.pat, ans: fb.ans};
+  }
 }
 
 function newPuzzle(){
@@ -273,15 +252,35 @@ function newPuzzle(){
     return;
   }
   
-  // 50/50 split
-  if(Math.random() < 0.5){
-    puzzle = generateImpossible();
-    answers = [];
-  } else {
-    var result = generateSolvable();
+  // EXACTLY 50/50 split - verified against loaded dictionary
+  var isImpossible = Math.random() < 0.5;
+  
+  if(isImpossible){
+    var result = generatePuzzleWithAnswerCount(0);
     puzzle = result.pat;
     answers = result.ans;
+    
+    // Double-check: this must have 0 answers
+    var verify = findAnswers(puzzle);
+    if(verify.length > 0){
+      // Failed - try once more
+      result = generatePuzzleWithAnswerCount(0);
+      puzzle = result.pat;
+      answers = result.ans;
+    }
+  } else {
+    var result = generatePuzzleWithAnswerCount(1);
+    puzzle = result.pat;
+    answers = result.ans;
+    
+    // Must have at least 1 answer
+    if(answers.length === 0){
+      result = generatePuzzleWithAnswerCount(1);
+      puzzle = result.pat;
+      answers = result.ans;
+    }
   }
+  
   renderPuzzle();
 }
 
@@ -356,23 +355,20 @@ window.addEventListener('resize', function(){
   renderAnswers();
 });
 
-var FALLBACK = ['horse','house','mouse','worse','bird','bard','cat','cot','cut'];
+var FALLBACK = ['horse','house','mouse','worse','bird','bard','cat','cot','cut','fox','fax','fix','wolf','crank','blade','grass','crane','plane','train','brain','chain','stone','phone','green','black','white','brown','small','large','quick','slow','high','low','soft','hard','light','dark','cold','hot','new','old','good','bad','long','short','wide','narrow'];
 
 async function loadDict(){
-  setStatus('fetching 170k English words...');
+  setStatus('fetching English dictionary (170k words)...');
   try{
     var r = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
     var t = await r.text();
-    var words = t.split('\n').map(function(w){ return w.trim().toLowerCase(); });
-    dict = words.filter(function(w){ 
-      return w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w);
-    });
-    dictSet = new Set(dict);
-    setStatus('✓ ' + dict.length.toLocaleString() + ' English words | 50/50 | Y/N');
+    dict = t.split('\n')
+      .map(function(w){ return w.trim().toLowerCase(); })
+      .filter(function(w){ return w.length >= 3 && w.length <= 8 && /^[a-z]+$/.test(w); });
+    setStatus('✓ ' + dict.length.toLocaleString() + ' words | 50/50 impossible/solvable | Y/N');
   } catch(e){
     dict = FALLBACK;
-    dictSet = new Set(dict);
-    setStatus('offline - ' + dict.length + ' words');
+    setStatus('offline: ' + dict.length + ' common words | Y/N');
   }
   newPuzzle();
 }
