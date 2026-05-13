@@ -21,6 +21,8 @@ html,body{
   flex-direction:column;
   width:100%;
   height:100%;
+  justify-content:flex-start;
+  overflow-y:auto;
 }
 
 #title{
@@ -90,12 +92,13 @@ html,body{
 }
 
 #answerblock{
-  flex:1;
+  flex:0;
   padding:0 6px 4px 6px;
   column-count:3;
   column-gap:20px;
   overflow-y:auto;
-  min-height:100px;
+  height:180px;
+  flex-shrink:0;
 }
 
 .aline{
@@ -135,12 +138,7 @@ html,body{
 }
 
 #status{
-  flex-shrink:0;
-  font-size:11px;
-  color:#fff;
-  padding:1px 6px;
-  border-top:1px solid #fff;
-  background:#000;
+  display:none;
 }
 
 #gameover{
@@ -344,14 +342,13 @@ html,body{
 
 </div>
   
-  <div id="status">loading Scrabble dictionary...</div>
-
   <div id="gameover">
   <div id="gotext">_NY L_ST W_RDZ?</div>
 </div>
 
 <!-- Message box at bottom - FIXED POSITION -->
 <div id="messagebox">
+  <span style="color:#fff;">📖</span> Compiled through <a href="https://en.wikipedia.org/wiki/North_American_Scrabble_Players_Association" target="_blank" style="color:#fff;">Scrabble</a> TWL dictionary. Click words for <a href="https://en.wiktionary.org/" target="_blank" style="color:#fff;">Wiktionary</a> definitions.<br>
   <span style="color:#fff;">✎</span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;">BOZOIDS</a>? H_TERS? Fake words? False negatives? Notes welcome:<br>
   <input type="text" id="noteInput" maxlength="300" placeholder="type note..." style="font-size:16px;">
   <button id="submitNote">send</button>
