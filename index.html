@@ -337,7 +337,7 @@ html,body{
     width:100%;
   }
   #puzzleline{
-    font-size:40px;
+    font-size:35px;
     letter-spacing:1px;
   }
   #scorebox{
@@ -535,16 +535,37 @@ function findAnswers(pattern){
   } catch(e){ return []; }
 }
 
+// Helper function for balanced word selection
+function getBalancedWord(minLen, maxLen){
+  // 40% chance to pick a short word (3-5 letters), 60% chance for any length
+  var useShort = Math.random() < 0.4;
+  
+  if(useShort){
+    var shortWords = dict.filter(function(w){ return w.length >= 3 && w.length <= 5; });
+    if(shortWords.length){
+      return shortWords[Math.floor(Math.random() * shortWords.length)];
+    }
+  }
+  
+  // Fallback to any word in range
+  var candidates = dict.filter(function(w){ return w.length >= minLen && w.length <= maxLen; });
+  if(candidates.length){
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  return dict[Math.floor(Math.random() * dict.length)];
+}
+
 // Generate IMPOSSIBLE puzzle - ONLY returns patterns with 0 dictionary matches
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
-    var baseWord = dict[Math.floor(Math.random() * dict.length)];
+    var baseWord = getBalancedWord(4, 10);
     if(!baseWord) continue;
     
     var chars = baseWord.split('');
     
-    // Change 2-3 letters to create a non-word
-    var changeCount = Math.min(2 + Math.floor(Math.random() * 2), chars.length - 1);
+    // For short words (4-5 letters), change only 1 letter
+    // For longer words (6-10), change 2-3 letters
+    var changeCount = chars.length <= 5 ? 1 : Math.min(2 + Math.floor(Math.random() * 2), chars.length - 1);
     for(var c = 0; c < changeCount; c++){
       var pos = Math.floor(Math.random() * chars.length);
       var originalChar = chars[pos];
@@ -592,8 +613,8 @@ function generateImpossible(){
 // Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
-    var word = dict[Math.floor(Math.random() * dict.length)];
-    if(!word || word.length < 3 || word.length > 10) continue;
+    var word = getBalancedWord(3, 10);
+    if(!word) continue;
     
     var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1);
     blankCount = Math.min(blankCount, word.length - 2);
@@ -622,32 +643,6 @@ function generateSolvable(){
   ];
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
-
-function newPuzzle(){
-  if(dict.length === 0){
-    setTimeout(newPuzzle, 100);
-    return;
-  }
-  
-  var isImpossible = Math.random() < 0.3;
-  
-  if(isImpossible){
-    puzzle = generateImpossible();
-    answers = [];
-    var check = findAnswers(puzzle);
-    if(check.length > 0){
-      puzzle = generateImpossible();
-      answers = [];
-    }
-  } else {
-    var result = generateSolvable();
-    puzzle = result.pat;
-    answers = result.ans;
-    if(answers.length === 0){
-      result = generateSolvable();
-      puzzle = result.pat;
-      answers = result.ans;
-    }
   }
   // Prevent exact repeats
 if(recentPuzzles.includes(puzzle)){
