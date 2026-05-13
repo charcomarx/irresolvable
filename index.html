@@ -10,7 +10,7 @@ html,body{
   width:100%;height:100%;
   background:#000;color:#ccc;
   font-family:'Courier New',Courier,monospace;
-  font-size:14px;
+  font-size:22px;
   line-height:1.3;
   overflow:hidden;
   user-select:none;
@@ -28,13 +28,13 @@ html,body{
   padding:2px 6px;
   border-bottom:1px solid #333;
   flex-shrink:0;
-  font-size:14px;
+  font-size:24px;
   letter-spacing:0;
 }
 
 #instruction{
   color:#6f6;
-  font-size:10px;
+  font-size:16px;
   padding:2px 6px;
   border-bottom:1px solid #333;
   flex-shrink:0;
@@ -44,19 +44,18 @@ html,body{
 #puzzlerow{
   flex-shrink:0;
   white-space:pre;
+  font-family:'Courier New',Courier,monospace;
 }
 
 #puzzleline{
-  font-size:14px;
-  letter-spacing:1px;
+  font-size:16px;
+  letter-spacing:2px;
   color:#fff;
   white-space:pre;
   padding:4px 6px 2px 6px;
   min-height:24px;
   transition:color 0.1s ease;
   font-family:'Courier New',Courier,monospace;
-  word-break:break-all;
-  white-space:normal;
 }
 
 #puzzleline.warning{
@@ -81,10 +80,11 @@ html,body{
 }
 
 .aline{
-  font-size:12px;
+  font-size:16px;
   white-space:nowrap;
   line-height:1.3;
   margin:2px 0;
+  font-family:'Courier New',Courier,monospace;
 }
 
 .aline.correct{
@@ -116,7 +116,7 @@ html,body{
 
 #status{
   flex-shrink:0;
-  font-size:9px;
+  font-size:16px;
   color:#383838;
   padding:1px 6px;
   border-top:1px solid #111;
@@ -153,14 +153,51 @@ html,body{
   animation:flash .9s steps(1) forwards;
 }
 
-/* Y/N buttons - smaller for mobile */
-#buttons{
+/* Top right controls: score + buttons */
+#topright{
   position:fixed;
   top:2px;
   right:4px;
   display:flex;
-  gap:6px;
+  gap:8px;
+  align-items:center;
   z-index:100;
+}
+
+#scorebox{
+  background:#111;
+  color:#ccc;
+  border:1px solid #333;
+  font-family:'Courier New',Courier,monospace;
+  font-size:24px;
+  font-weight:bold;
+  width:50px;
+  height:40px;
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+#scorebox.positive{
+  color:#6f6;
+  border-color:#3a3;
+}
+
+#scorebox.negative{
+  color:#f66;
+  border-color:#a33;
+}
+
+#scorebox.zero{
+  color:#fff;
+  border-color:#333;
+}
+
+#buttons{
+  display:flex;
+  gap:6px;
 }
 
 #buttons button{
@@ -168,7 +205,7 @@ html,body{
   color:#ccc;
   border:1px solid #333;
   font-family:'Courier New',Courier,monospace;
-  font-size:16px;
+  font-size:24px;
   font-weight:bold;
   width:40px;
   height:40px;
@@ -187,34 +224,38 @@ html,body{
 /* Mobile adjustments */
 @media (max-width: 600px){
   #puzzleline{
-    font-size:12px;
-    letter-spacing:0;
-    white-space:normal;
-    word-break:break-word;
+    font-size:24px;
+    letter-spacing:1px;
   }
   .aline{
-    font-size:11px;
-    white-space:normal;
-    word-break:break-word;
+    font-size:16px;
   }
   #title{
-    font-size:12px;
-    padding-right:50px;
+    font-size:16px;
+    padding-right:110px;
+  }
+  #scorebox{
+    width:40px;
+    height:36px;
+    font-size:20px;
   }
   #buttons button{
     width:36px;
     height:36px;
-    font-size:14px;
+    font-size:20px;
   }
 }
 </style>
 </head>
 <body>
 
-<!-- Y/N Buttons for touch -->
-<div id="buttons">
-  <button id="btnY">Y</button>
-  <button id="btnN">N</button>
+<!-- Top right controls: Score + Y/N buttons -->
+<div id="topright">
+  <div id="scorebox">0</div>
+  <div id="buttons">
+    <button id="btnY">Y</button>
+    <button id="btnN">N</button>
+  </div>
 </div>
 
 <div id="wrap">
@@ -236,12 +277,12 @@ html,body{
 var dict = [];
 var puzzle = '', answers = [];
 
-var score    = 0;
-var tabLevel = 0;
+var score    = 0;      // Can be positive or negative
+var tabLevel = 0;      // Always 0 or positive (displacement)
 var rowPad   = 0;
 var locked   = false;
 
-// Reduce max tabs for mobile (fits in screen)
+// Mobile detection
 var isMobile = window.innerWidth <= 600;
 var MAX_TABS = isMobile ? 5 : 9;
 var TAB_SP   = isMobile ? 2 : 4;
@@ -256,11 +297,26 @@ var answerRowEl= document.getElementById('answerrow');
 var answerEl   = document.getElementById('answerblock');
 var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
+var scoreBox   = document.getElementById('scorebox');
+
+function updateScoreDisplay(){
+  if(score > 0){
+    scoreBox.textContent = '' + score;
+    scoreBox.className = 'positive';
+  } else if(score < 0){
+    scoreBox.textContent = '!';
+    scoreBox.className = 'negative';
+  } else {
+    scoreBox.textContent = '0';
+    scoreBox.className = 'zero';
+  }
+}
 
 function renderPuzzle(){
-  var prefix = ' '.repeat(tabLevel * TAB_SP);
-  var sc = (tabLevel === 0 && score > 0) ? ' +' + score : '';
-  puzzleEl.textContent = prefix + puzzle + sc;
+  // Tabs using spaces - this MUST preserve exact positioning
+  var prefix = '';
+  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+  puzzleEl.textContent = prefix + puzzle;
   
   if(tabLevel >= 1){
     puzzleEl.classList.add('warning');
@@ -459,6 +515,7 @@ function handleAnswer(userSaysYes){
   }
   
   if(correct){
+    // CORRECT: move left if displaced, otherwise increase score
     if(tabLevel > 0){
       tabLevel--;
     } else {
@@ -466,21 +523,27 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-    score = 0;
-    tabLevel++;
+    // WRONG: decrease score, then possibly increase tab
+    score--;
+    updateScoreDisplay();
     
-    if(tabLevel >= MAX_TABS){
-      locked = true;
-      puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.textContent = '';
-        dropLine();
-      }, 1000);
-    } else {
-      newPuzzle();
+    // If score is negative, increase tabLevel (push right)
+    if(score < 0){
+      tabLevel++;
+      if(tabLevel >= MAX_TABS){
+        locked = true;
+        puzzleEl.classList.add('flashing');
+        setTimeout(function(){
+          puzzleEl.classList.remove('flashing');
+          puzzleEl.textContent = '';
+          dropLine();
+        }, 1000);
+        return;
+      }
     }
+    newPuzzle();
   }
+  updateScoreDisplay();
 }
 
 function dropLine(){
@@ -497,6 +560,7 @@ function dropLine(){
   tabLevel = 0;
   score = 0;
   locked = false;
+  updateScoreDisplay();
   newPuzzle();
   renderAnswers();
 }
@@ -565,6 +629,7 @@ async function loadDict(){
     setStatus('✓ ' + dict.length + ' words | 70/30');
   }
   
+  updateScoreDisplay();
   newPuzzle();
 }
 
