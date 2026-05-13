@@ -359,7 +359,6 @@ html,body{
 
 <!-- Score left -->
 <div id="scorebox">0</div>
-<div id="highscore" style="position:fixed; top:30px; left:110px; font-size:20px; color:#6f6; font-weight:bold;">0</div>
 
 <!-- Y/N buttons right -->
 <div id="buttons">
@@ -432,16 +431,6 @@ function updateScoreDisplay(){
   } else {
     scoreBox.textContent = '0';
     scoreBox.className = 'zero';
-  }
-  updateHighScore();
-}
-
-var highScore = 0;
-
-function updateHighScore(){
-  if(score > highScore){
-    highScore = score;
-    document.getElementById('highscore').textContent = highScore;
   }
 }
 
@@ -655,14 +644,13 @@ function handleAnswer(userSaysYes){
       }, 1000);
     } else {
       newPuzzle();
-}
     }
   }
   updateScoreDisplay();
 }
 
 function dropLine(){
-  rowPad = rowPad + 15;
+  rowPad++;
   applyRowPad();
   
   tabLevel = 0;
