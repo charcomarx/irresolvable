@@ -435,6 +435,7 @@ var MAX_TABS = isMobile ? 1 : 1;
 var TAB_SP   = isMobile ? 2 : 4;
 
 var answerHistory = [];
+var recentPuzzles = [];
 
 var titleEl    = document.getElementById('title');
 var puzzleRowEl= document.getElementById('puzzlerow');
@@ -537,7 +538,6 @@ function findAnswers(pattern){
 // Generate IMPOSSIBLE puzzle - ONLY returns patterns with 0 dictionary matches
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
-    var recentPuzzles = [];
     var baseWord = dict[Math.floor(Math.random() * dict.length)];
     if(!baseWord) continue;
     
