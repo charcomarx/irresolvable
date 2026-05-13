@@ -417,7 +417,7 @@ html,body{
 
 <!-- Message box at bottom - FIXED POSITION -->
 <div id="messagebox">
-  <span style="color:#fff;"></span> Compiled with Scrabble TWL dictionary. <span style="color:#6f6;">Click words for Wiktionary definition.</span> <span style="color:#fff;"></span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? Or H_TERS? Fake words? False negatives? Notes welcome <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
+  <span style="color:#fff;"></span> Compiled with Collins Scrabble Words dictionary. <span style="color:#6f6;">Click words for Wiktionary definition.</span> <span style="color:#fff;"></span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? Or H_TERS? Fake words? False negatives? Notes welcome <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
 </div>
 
 <script>
@@ -538,7 +538,8 @@ function findAnswers(pattern){
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
     var baseWord = dict[Math.floor(Math.random() * dict.length)];
-    if(!baseWord || baseWord.length < 4 || baseWord.length > 7) continue;
+
+    if(!baseWord || baseWord.length < 3 || baseWord.length > 10) continue;
     
     var chars = baseWord.split('');
     
@@ -558,8 +559,9 @@ function generateImpossible(){
       newChar = otherConsonants[Math.floor(Math.random() * otherConsonants.length)];
     }
     chars[pos] = newChar;
-    
-    var blankCount = 1 + Math.floor(Math.random() * Math.min(2, chars.length - 2));
+
+    var blankCount = 1 + Math.floor(Math.random() * 3); // 1 to 3 blanks
+    blankCount = Math.min(blankCount, word.length - 2);
     var positions = [];
     for(var i = 0; i < chars.length; i++) positions.push(i);
     positions = shuffle(positions).slice(0, blankCount);
@@ -582,7 +584,7 @@ function generateImpossible(){
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
     var word = dict[Math.floor(Math.random() * dict.length)];
-    if(!word || word.length < 4 || word.length > 7) continue;
+    if(!word || word.length < 3 || word.length > 10) continue;
     
     var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1);
     blankCount = Math.min(blankCount, word.length - 2);
@@ -814,9 +816,9 @@ async function loadDict(){
   setStatus('loading Scrabble dictionary...');
   
   var urls = [
-    'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt',
-    'https://raw.githubusercontent.com/redbo/scrabble/master/dictionary.txt'
-  ];
+  'https://raw.githubusercontent.com/danvk/hybrid-boggle/main/wordlists/sowpods.txt',
+  'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt'
+];
   
   var loaded = false;
   for(var u = 0; u < urls.length && !loaded; u++){
