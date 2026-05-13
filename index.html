@@ -269,6 +269,42 @@ html,body{
   color:#fff;
   z-index:101;
 }
+#messagebox input{
+  background:#000;
+  border:1px solid #fff;
+  color:#fff;
+  font-family:'Courier New',Courier,monospace;
+  font-size:16px;
+  padding:4px 6px;
+  width:70%;
+  margin-right:4px;
+}
+#messagebox button{
+  background:#000;
+  border:1px solid #fff;
+  color:#fff;
+  font-family:'Courier New',Courier,monospace;
+  font-size:10px;
+  padding:4px 8px;
+  cursor:pointer;
+}
+#messagebox button:active{
+  background:#fff;
+  color:#000;
+}
+#messageDisplay{
+  margin-top:4px;
+  padding-top:4px;
+  border-top:1px dotted #fff;
+  font-size:9px;
+  word-break:break-word;
+  max-height:50px;
+  overflow-y:auto;
+}
+.message-entry{
+  margin:2px 0;
+  color:#fff;
+}
 
 @media (max-width: 600px){
   #topspacer{
@@ -336,6 +372,9 @@ html,body{
 <div id="messagebox">
   <span style="color:#fff;"></span> Compiled with Scrabble TWL dictionary. Click word for Wiktionary definition.<br>
   <span style="color:#fff;"></span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;">BOZOIDS</a>? H_TERS? Fake words? False negatives? Notes welcome <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">HERE @ GitHub</a><br>
+  <input type="text" id="noteInput" maxlength="300" placeholder="type note..." style="font-size:16px;">
+  <button id="submitNote">send</button>
+  <div id="messageDisplay"></div>
 </div>
 
 <script>
@@ -628,6 +667,72 @@ document.getElementById('btnN').addEventListener('click', function(){
 window.addEventListener('resize', function(){
   renderAnswers();
 });
+
+// Message box functionality
+var messages = [];
+
+function loadMessages(){
+  try{
+    var saved = localStorage.getItem('anywordz_notes');
+    if(saved) messages = JSON.parse(saved);
+  } catch(e){ messages = []; }
+  renderMessages();
+}
+
+function saveMessages(){
+  try{
+    var toSave = messages.slice(-20);
+    localStorage.setItem('anywordz_notes', JSON.stringify(toSave));
+  } catch(e){}
+}
+
+function renderMessages(){
+  var container = document.getElementById('messageDisplay');
+  if(!container) return;
+  container.innerHTML = '';
+  var show = messages.slice(-8).reverse();
+  for(var i = 0; i < show.length; i++){
+    var div = document.createElement('div');
+    div.className = 'message-entry';
+    var date = new Date(show[i].timestamp);
+    var timeStr = date.toLocaleTimeString().slice(0,5);
+    div.textContent = timeStr + ' › ' + show[i].text;
+    container.appendChild(div);
+  }
+}
+
+function addMessage(text){
+  if(!text.trim()) return;
+  messages.push({
+    text: text.trim().slice(0,300),
+    timestamp: Date.now()
+  });
+  saveMessages();
+  renderMessages();
+}
+
+// Message box event listeners
+var submitBtn = document.getElementById('submitNote');
+var noteInput = document.getElementById('noteInput');
+
+if(noteInput){
+  noteInput.addEventListener('keydown', function(e){
+    e.stopPropagation();
+  });
+  noteInput.addEventListener('keypress', function(e){
+    if(e.key === 'Enter'){
+      submitBtn.click();
+    }
+  });
+}
+if(submitBtn){
+  submitBtn.addEventListener('click', function(){
+    if(noteInput && noteInput.value.trim()){
+      addMessage(noteInput.value);
+      noteInput.value = '';
+    }
+  });
+}
 
 var TWL_FALLBACK = [
   'horse','house','mouse','worse','curse','nurse','bird','bard','bord','burd',
