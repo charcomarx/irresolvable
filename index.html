@@ -126,11 +126,10 @@ var gameoverEl = document.getElementById('gameover');
 
 function renderPuzzle(){
   var prefix = ' '.repeat(tabLevel * TAB_SP);
-  // Only show score when tabLevel is 0 AND score > 0
   var sc = (tabLevel === 0 && score > 0) ? ' +' + score : '';
   puzzleEl.textContent = prefix + puzzle + sc;
   
-  // Turn red when in any tab position (including -1 / first tab)
+  // Turn red when in any tab position
   if(tabLevel >= 1){
     puzzleEl.classList.add('warning');
   } else {
@@ -338,10 +337,9 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-    // UNTRUE ANSWER: immediately go to -1 position
-    // Score resets to 0, tabLevel becomes 1 (first tab/red zone)
+    // UNTRUE ANSWER: increase tab position, reset score to 0
     score = 0;
-    tabLevel = 1;
+    tabLevel++;
     
     // Check if we've hit the right margin
     if(tabLevel >= MAX_TABS){
@@ -420,7 +418,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake | Wrong answer = immediate red zone');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake | Wrong answers push right');
         }
       }
     } catch(e){}
@@ -428,7 +426,7 @@ async function loadDict(){
   
   if(!loaded || dict.length < 500){
     dict = TWL_FALLBACK;
-    setStatus('✓ ' + dict.length + ' words | 70/30 | Wrong answer = immediate red zone');
+    setStatus('✓ ' + dict.length + ' words | 70/30 | Wrong answers push right');
   }
   
   newPuzzle();
