@@ -113,7 +113,7 @@ var locked   = false;
 
 var MAX_TABS = 9;
 var TAB_SP   = 4;
-var answerHistory = []; // each entry: {text, link, correct}
+var answerHistory = [];
 
 var titleEl    = document.getElementById('title');
 var puzzleRowEl= document.getElementById('puzzlerow');
@@ -126,10 +126,11 @@ var gameoverEl = document.getElementById('gameover');
 
 function renderPuzzle(){
   var prefix = ' '.repeat(tabLevel * TAB_SP);
+  // Only show score when tabLevel is 0 AND score > 0
   var sc = (tabLevel === 0 && score > 0) ? ' +' + score : '';
   puzzleEl.textContent = prefix + puzzle + sc;
   
-  // Turn red when in tab position (any wrong answer has pushed it)
+  // Turn red when in any tab position (including -1 / first tab)
   if(tabLevel >= 1){
     puzzleEl.classList.add('warning');
   } else {
@@ -201,7 +202,6 @@ function findAnswers(pattern){
   } catch(e){ return []; }
 }
 
-// Generate IMPOSSIBLE puzzle (30% of puzzles)
 function generateImpossible(){
   if(dict.length === 0) return '_X_';
   
@@ -211,7 +211,6 @@ function generateImpossible(){
     
     var chars = baseWord.split('');
     
-    // Corruption: change a vowel to a different vowel
     var vowelPositions = [];
     for(var i = 0; i < chars.length; i++){
       if('aeiou'.indexOf(chars[i]) !== -1) vowelPositions.push(i);
@@ -224,7 +223,6 @@ function generateImpossible(){
       var newVowel = otherVowels[Math.floor(Math.random() * otherVowels.length)];
       chars[pos] = newVowel;
     } else {
-      // Swap two consonants
       if(chars.length >= 4){
         var idx1 = 1 + Math.floor(Math.random() * (chars.length - 2));
         var idx2 = 1 + Math.floor(Math.random() * (chars.length - 2));
@@ -234,7 +232,6 @@ function generateImpossible(){
       }
     }
     
-    // Blank out 1-2 positions
     var blankCount = 1 + Math.floor(Math.random() * Math.min(2, chars.length - 2));
     var positions = [];
     for(var i = 0; i < chars.length; i++) positions.push(i);
@@ -251,7 +248,6 @@ function generateImpossible(){
     }
   }
   
-  // Fallback verified impossible patterns
   var verifiedImpossible = [
     'WH_LK', 'TH_RP', 'CH_LK', 'BR_SS', 'CR_SS', 'DR_SS',
     'SP_GG', 'ST_GG', 'WH_RL', 'PR_NK', 'TR_NK', '_OT_ORD'
@@ -266,7 +262,6 @@ function generateImpossible(){
   return '_OT_ORD';
 }
 
-// Generate SOLVABLE puzzle (70% of puzzles)
 function generateSolvable(){
   if(dict.length === 0) return {pat: 'H_RSE', ans: ['horse','house']};
   
@@ -331,11 +326,11 @@ function handleAnswer(userSaysYes){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), correct);
   } else {
-    // Show "-" for impossible puzzles, color based on whether user was correct
     addAnswer('-', null, correct);
   }
   
   if(correct){
+    // CORRECT ANSWER: move left if displaced, otherwise increase score
     if(tabLevel > 0){
       tabLevel--;
     } else {
@@ -343,23 +338,22 @@ function handleAnswer(userSaysYes){
     }
     newPuzzle();
   } else {
-    if(score > 0){
-      score--;
-      newPuzzle();
+    // UNTRUE ANSWER: immediately go to -1 position
+    // Score resets to 0, tabLevel becomes 1 (first tab/red zone)
+    score = 0;
+    tabLevel = 1;
+    
+    // Check if we've hit the right margin
+    if(tabLevel >= MAX_TABS){
+      locked = true;
+      puzzleEl.classList.add('flashing');
+      setTimeout(function(){
+        puzzleEl.classList.remove('flashing');
+        puzzleEl.textContent = '';
+        dropLine();
+      }, 1000);
     } else {
-      score = 0;
-      tabLevel++;
-      if(tabLevel >= MAX_TABS){
-        locked = true;
-        puzzleEl.classList.add('flashing');
-        setTimeout(function(){
-          puzzleEl.classList.remove('flashing');
-          puzzleEl.textContent = '';
-          dropLine();
-        }, 1000);
-      } else {
-        newPuzzle();
-      }
+      newPuzzle();
     }
   }
 }
@@ -426,7 +420,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake | Y/N');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake | Wrong answer = immediate red zone');
         }
       }
     } catch(e){}
@@ -434,7 +428,7 @@ async function loadDict(){
   
   if(!loaded || dict.length < 500){
     dict = TWL_FALLBACK;
-    setStatus('✓ ' + dict.length + ' words | 70/30 | Y/N');
+    setStatus('✓ ' + dict.length + ' words | 70/30 | Wrong answer = immediate red zone');
   }
   
   newPuzzle();
