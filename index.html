@@ -518,7 +518,7 @@ async function loadDict(){
         });
         if(dict.length > 1000){
           loaded = true;
-          setStatus('✓ ' + dict.length.toLocaleString() + ' words | 70% real / 30% fake | Wrong answers push right');
+          setStatus('✓ ' + dict.length.toLocaleString() + ' words');
         }
       }
     } catch(e){}
@@ -526,7 +526,7 @@ async function loadDict(){
   
   if(!loaded || dict.length < 500){
     dict = TWL_FALLBACK;
-    setStatus('✓ ' + dict.length + ' words | 70/30 | Wrong answers push right');
+    setStatus('✓ ' + dict.length + ' words ');
   }
   
   newPuzzle();
