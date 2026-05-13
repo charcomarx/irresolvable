@@ -643,17 +643,45 @@ function generateSolvable(){
   ];
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
+  
+function newPuzzle(){
+  if(dict.length === 0){
+    setTimeout(newPuzzle, 100);
+    return;
   }
+  
+  var isImpossible = Math.random() < 0.3;
+  
+  if(isImpossible){
+    puzzle = generateImpossible();
+    answers = [];
+    var check = findAnswers(puzzle);
+    if(check.length > 0){
+      puzzle = generateImpossible();
+      answers = [];
+    }
+  } else {
+    var result = generateSolvable();
+    puzzle = result.pat;
+    answers = result.ans;
+    if(answers.length === 0){
+      result = generateSolvable();
+      puzzle = result.pat;
+      answers = result.ans;
+    }
+  }
+  
   // Prevent exact repeats
-if(recentPuzzles.includes(puzzle)){
-  return newPuzzle(); // Try again
-}
-recentPuzzles.push(puzzle);
-if(recentPuzzles.length > 100) recentPuzzles.shift(); 
+  if(recentPuzzles.includes(puzzle)){
+    newPuzzle();
+    return;
+  }
+  recentPuzzles.push(puzzle);
+  if(recentPuzzles.length > 100) recentPuzzles.shift(); 
   
   renderPuzzle();
 }
-
+  
 function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
