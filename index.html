@@ -26,7 +26,7 @@ html,body{
 #title{
   background:#fff;
   color:#000;
-  text-align:center;
+  text-align:right;
   padding:4px 6px;
   flex-shrink:0;
   font-size:30px;
@@ -356,9 +356,8 @@ html,body{
 
 <div id="title">A _ Y  ...<br>L A _ T  ...<br><span style="color:#f66;">W O _ D Z</span><br>... ?</div>
 <div id="instruction">What IZZA word? WOT'S not?!</div>
-<div id="instruction">Is <span style="color:#fff;">THIS</span> one?! Select Y or N!</div>
-<div id="instruction">Get them <span style="color:#f66;">WRONG</span> and lose your SCORE!</div>
-<div id="instruction">Get MORE <span style="color:#f66;">wrong</span> and lose your SPACE!</div>
+<div id="instruction">Is <span style="color:#fff;">THIS</span> one?! Select YES or <span style="color:#f66;">NO</span>!</div>
+<div id="instruction">Get it WRONG and lose your SCORE!</div>
 <!-- Score left -->
 <div id="scorebox">0</div>
 <div id="highscore" style="position:fixed; top:55px; left:110px; font-size:10px; color:#f66; font-weight:bold;">HIGH<br>SCORE</div>
@@ -401,7 +400,7 @@ var locked   = false;
 
 // Mobile detection for tabs
 var isMobile = window.innerWidth <= 600;
-var MAX_TABS = isMobile ? 2 : 2;
+var MAX_TABS = isMobile ? 1 : 1;
 var TAB_SP   = isMobile ? 2 : 4;
 
 var answerHistory = [];
