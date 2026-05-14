@@ -510,7 +510,10 @@ function renderAnswers(){
   for(var i = 0; i < answerHistory.length; i++){
     var entry = answerHistory[i];
     var d = document.createElement('div');
-    d.className = 'aline';
+  d.className = 'aline';
+  if(!entry.link && entry.color === 'white'){
+  d.style.textDecoration = 'line-through';
+  }  
     d.style.color = entry.color;
     if(entry.link){
       var a = document.createElement('a');
