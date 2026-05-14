@@ -714,6 +714,7 @@ function newPuzzle(){
  function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
+  var flashedWord = null;
   
   var answerColor;
   if(correct){
@@ -725,9 +726,9 @@ function newPuzzle(){
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), answerColor);
+    flashedWord = chosen;
   } else {
     addAnswer(puzzle, null, answerColor);
-    
     if(userSaysYes === true && hasWord === false){
       fapoNumber++;
       document.getElementById('fapoNumber').textContent = fapoNumber;
@@ -750,13 +751,11 @@ function newPuzzle(){
       tabLevel = 1;
     }
     
-    // Show tab shift first
     renderPuzzle();
     
     if(tabLevel >= MAX_TABS){
       locked = true;
       if(userSaysYes === true && hasWord === false){
-        // False positive - flash red, then drop
         puzzleEl.style.color = '#f66';
         puzzleEl.classList.add('flashing');
         setTimeout(function(){
@@ -766,13 +765,9 @@ function newPuzzle(){
           dropLine();
         }, 1000);
       } else if(userSaysYes === false && hasWord === true){
-        // Missed word - show filled word, flash green, then drop
-        var filledWord = answers[0].toUpperCase();
-        puzzleEl.textContent = filledWord;
-        // Add tab spaces to match the shifted position
         var prefix = '';
         for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-        puzzleEl.textContent = prefix + filledWord;
+        puzzleEl.textContent = prefix + flashedWord.toUpperCase();
         puzzleEl.style.color = '#6f6';
         puzzleEl.classList.add('flashing');
         setTimeout(function(){
@@ -789,7 +784,7 @@ function newPuzzle(){
     }
   }
   updateScoreDisplay();
-} 
+}
 function dropLine(){
   rowPad++;
   applyRowPad();
