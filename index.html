@@ -393,6 +393,8 @@ html,body{
 <div id="scorebox">0</div>
 <div id="highscore">HIGHEST SCORE</div>
 <div id="highscoreNumber">0</div>  
+<div id="highscore">FALSE POSITIVES</div>
+<div id="fapoNumber" style="position:fixed; top:75px; right:110px; font-size:25px; color:#f66; font-weight:bold;">0</div>  
   <!-- Y/N buttons right -->
 <div style="position:fixed; top:400px; right:2px; color:#fff; font-size:20px; font-weight:bold; z-index:102; text-align:center;">⬆️ TAP HERE<br><span font-size:15px>or TYPE Y / N</span></div>
   <div id="buttons">
@@ -412,12 +414,12 @@ html,body{
   <div id="status">loading Scrabble dictionary...</div>
 
   <div id="gameover">
-  <div id="gotext">K_NOT W_ORDS?</div>
+  <div id="gotext">Y_U K_NOT W_ORDS?</div>
 </div>
 
 <!-- Message box at bottom - FIXED POSITION -->
 <div id="messagebox">
-  <span style="color:#6f6;">Click on <span text-decoration:underline>TRUE WORDS</span> for Wiktionary definitions.</span><span style="color:#fff;"></span> Compiled with <a href="https://scrabble.collinsdictionary.com/check/" target="_blank" style="color:#f66; text-decoration:underline;">Collins Scrabble Words</a>.<br><span style="color:#fff;"></span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? Or H_TERS? Fake words? False negatives? Notes welcome <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
+  <span style="color:#6f6;">Click on <span style="text-decoration:underline;">TRUE WORDS</span> for Wiktionary definitions.</span><span style="color:#fff;"></span> Compiled with <a href="https://scrabble.collinsdictionary.com/check/" target="_blank" style="color:#f66; text-decoration:underline;">Collins Scrabble Words</a>.<br><span style="color:#fff;"></span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? Or H_TERS? Fake words? False negatives? Notes welcome <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
 </div>
 
 <script>
@@ -446,6 +448,7 @@ var answerEl   = document.getElementById('answerblock');
 var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
+var fapoNumber = 0;
 
 function updateScoreDisplay(){
   if(score > 0){
@@ -706,11 +709,16 @@ function handleAnswer(userSaysYes){
     answerColor = userSaysYes ? '#f66' : '#6f6';
   }
   
-  if(hasWord){
-    var chosen = answers[Math.floor(Math.random() * answers.length)];
-    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), answerColor);
-  } else {
-    addAnswer(puzzle, null, answerColor);
+if(hasWord){
+  var chosen = answers[Math.floor(Math.random() * answers.length)];
+  addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), answerColor);
+} else {
+  addAnswer(puzzle, null, answerColor);
+  
+  // Increment false positives counter when user says Y but no word exists
+  if(userSaysYes === true && hasWord === false){
+    fapoNumber++;
+    document.getElementById('fapoNumber').textContent = fapoNumber;
   }
   
   if(correct){
@@ -749,7 +757,8 @@ function handleAnswer(userSaysYes){
 function dropLine(){
   rowPad++;
   applyRowPad();
-  
+  fapoNumber = 0;
+document.getElementById('fapoNumber').textContent = fapoNumber;
   tabLevel = 0;
   score = 0;
   locked = false;
