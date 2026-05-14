@@ -751,13 +751,21 @@ function newPuzzle(){
     renderPuzzle();
     
     if(tabLevel >= MAX_TABS){
-      locked = true;
-      puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.textContent = '';
-        dropLine();
-      }, 1000);
+  locked = true;
+  // Flash red if user said Y (false positive), flash green if user said N (missed word)
+  if(userSaysYes === true && hasWord === false){
+    puzzleEl.style.color = '#f66';
+  } else if(userSaysYes === false && hasWord === true){
+    puzzleEl.style.color = '#6f6';
+  }
+  puzzleEl.classList.add('flashing');
+  setTimeout(function(){
+    puzzleEl.classList.remove('flashing');
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    dropLine();
+  }, 1000);
+}
     } else {
       newPuzzle();
     }
