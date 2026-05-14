@@ -736,37 +736,38 @@ function handleAnswer(userSaysYes){
       document.getElementById('fapoNumber').textContent = fapoNumber;
     }
   }
-  
+
+
   if(correct){
-    // CORRECT ANSWER
-    if(tabLevel > 0){
-      tabLevel--;
-      if(tabLevel === 0) score = 0;
-    } else {
-      score++;
-    }
-    updateScoreDisplay();
-    
-    // Show the filled word
-    var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
-    var prefix = '';
-    for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-    puzzleEl.textContent = prefix + filledWord;
-    
-    // Flash white
-    locked = true;
+  if(tabLevel > 0){
+    tabLevel--;
+    if(tabLevel === 0) score = 0;
+  } else {
+    score++;
+  }
+  updateScoreDisplay();
+  
+  // FORCE to tab position 1
+  tabLevel = 1;
+  
+  // Show the filled word with tab spacing
+  var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
+  var prefix = '';
+  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+  puzzleEl.textContent = prefix + filledWord;
+  
+  locked = true;
+  puzzleEl.style.color = '#fff';
+  puzzleEl.classList.add('flashing');
+  setTimeout(function(){
+    puzzleEl.classList.remove('flashing');
     puzzleEl.style.color = '#fff';
-    puzzleEl.classList.add('flashing');
-    setTimeout(function(){
-      puzzleEl.classList.remove('flashing');
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      tabLevel = 0;  
-      newPuzzle();
-      locked = false;
-    }, 1000);
-
-
+    puzzleEl.textContent = '';
+    // Reset to left after flash
+    tabLevel = 0;
+    newPuzzle();
+    locked = false;
+  }, 1000);
       } else {
     // INCORRECT ANSWER - always go to tab 1, reset score
     score = -1;
