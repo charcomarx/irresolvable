@@ -436,7 +436,7 @@ font-family: 'Arial', sans-serif;
 </div>
 
 <!-- Message box at bottom - FIXED POSITION -->
-<div id="messagebox"><iframe src="https://www.internet-radio.com/station/differentdrumzdnb/" width="100%" height="120" style="border:none; margin:0; padding:0;" allow="autoplay"></iframe>
+<div id="messagebox">
   <br><span style="color:#fff;"></span> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? <span style="color:#6f6; font-size:14">Click on <span style="text-decoration:underline;">TRUE WORDS</span> for Wiktionary definitions.</span><span style="color:#fff;"></span> Powered by SOWPODS/Collins Scrabble Words @<a href="https://github.com/danvk/hybrid-boggle/blob/main/wordlists/README.md" target="_blank" style="color:#f66; text-decoration:underline;"> Hybrid Boggle Wordlists</a>. Notes <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
 </div>
 
@@ -718,7 +718,7 @@ function newPuzzle(){
   
   renderPuzzle();
 }
- function handleAnswer(userSaysYes){
+function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   var flashedWord = null;
@@ -749,7 +749,16 @@ function newPuzzle(){
     } else {
       score++;
     }
-    newPuzzle();
+    // Flash green for correct answers (fewer flashes)
+    locked = true;
+    puzzleEl.style.color = '#6f6';
+    puzzleEl.classList.add('flashing');
+    setTimeout(function(){
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.style.color = '#fff';
+      newPuzzle();
+      locked = false;
+    }, 500);
   } else {
     if(score < 0){
       tabLevel++;
