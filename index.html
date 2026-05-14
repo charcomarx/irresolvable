@@ -511,7 +511,7 @@ function renderAnswers(){
     var entry = answerHistory[i];
     var d = document.createElement('div');
   d.className = 'aline';
-  if(!entry.link && entry.color === 'white'){
+  if(!entry.link){
   d.style.textDecoration = 'line-through';
   }  
     d.style.color = entry.color;
