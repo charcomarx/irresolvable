@@ -16,6 +16,9 @@ html,body{
   overflow:hidden;
   user-select:none;
 }
+  #status{
+  display: none;
+}
 #wrap{
   display:flex;
   flex-direction:column;
@@ -451,10 +454,10 @@ font-family: 'Arial', sans-serif;
 </style>
 </head>
 <body>
-<div id="title">W_ZZA <span style="color:#f66;">W_OR_D</span><br>& W_OTNOT?<br></div>
-<div id="titleSpacer"><div> 
-<div id="instruction"><br><span style="color:#f66; font-size:25;">Is <span style="color:#fff;">THIS</span> one?</span></div> 
-  <div id="instruction2"><span style="color:#fff;">G_T _N_<br><span style="color:#f66;">WR_NG</span>...<br>G_ T_ 0!</span></span></div>
+<div id="title">W_ZZA <span style="color:#f66;">W_OR_D</span><br>& W_OT NOT?</div>
+  <div id="titleSpacer"></div>
+<div id="instruction"><span style="color:#f66; font-size:25px;">Is <span style="color:#fff;">THIS</span> one?</span></div> 
+<div id="instruction2"><span style="color:#fff;">G_T _N_<br><span style="color:#f66;">WR_NG</span>...<br>G_ T_ 0!</span></div>
 <!-- Score left -->
 <div id="scorebox">0</div>
 <div id="highscore">HIGHEST SCORE</div>
@@ -474,7 +477,7 @@ font-family: 'Arial', sans-serif;
   <div id="answerblock"></div>
 
 </div>
-  
+  <div id="status" style="display:none;"></div>
   <div id="gameover">
   <div id="gotext">Y_U K_NOT TH_ W_OR_DS</div>
 </div>
