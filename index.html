@@ -711,7 +711,7 @@ function newPuzzle(){
   
   renderPuzzle();
 }
-  function handleAnswer(userSaysYes){
+ function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   
@@ -750,11 +750,13 @@ function newPuzzle(){
       tabLevel = 1;
     }
     
+    // Show tab shift first
     renderPuzzle();
     
     if(tabLevel >= MAX_TABS){
       locked = true;
       if(userSaysYes === true && hasWord === false){
+        // False positive - flash red, then drop
         puzzleEl.style.color = '#f66';
         puzzleEl.classList.add('flashing');
         setTimeout(function(){
@@ -764,8 +766,13 @@ function newPuzzle(){
           dropLine();
         }, 1000);
       } else if(userSaysYes === false && hasWord === true){
+        // Missed word - show filled word, flash green, then drop
         var filledWord = answers[0].toUpperCase();
         puzzleEl.textContent = filledWord;
+        // Add tab spaces to match the shifted position
+        var prefix = '';
+        for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+        puzzleEl.textContent = prefix + filledWord;
         puzzleEl.style.color = '#6f6';
         puzzleEl.classList.add('flashing');
         setTimeout(function(){
@@ -782,8 +789,7 @@ function newPuzzle(){
     }
   }
   updateScoreDisplay();
-}
-  
+} 
 function dropLine(){
   rowPad++;
   applyRowPad();
