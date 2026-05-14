@@ -337,13 +337,13 @@ html,body{
     width:100%;
   }
   #fapoLabel{
-  top:135px; !important;
+  top:130px; !important;
   left:20px; !important;
   font-size:12px; !important;
   right:auto !important;
 }
 #fapoNumber{
-  top:135px !important;
+  top:130px !important;
   left:100px !important;
   right:auto !important;
   font-size:14px !important;
@@ -753,21 +753,30 @@ function newPuzzle(){
     
     renderPuzzle();
     
-    if(tabLevel >= MAX_TABS){
-      locked = true;
-      // Flash red if user said Y (false positive), flash green if user said N (missed word)
-      if(userSaysYes === true && hasWord === false){
-        puzzleEl.style.color = '#f66';
-      } else if(userSaysYes === false && hasWord === true){
-        puzzleEl.style.color = '#6f6';
-      }
-      puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.style.color = '#fff';
-        puzzleEl.textContent = '';
-        dropLine();
-      }, 1000);
+      if(tabLevel >= MAX_TABS){
+  locked = true;
+  // Flash red if user said Y (false positive), flash green if user said N (missed word)
+  if(userSaysYes === true && hasWord === false){
+    puzzleEl.style.color = '#f66';
+    puzzleEl.classList.add('flashing');
+    setTimeout(function(){
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      dropLine();
+    }, 1000);
+  } else if(userSaysYes === false && hasWord === true){
+    // Show the filled word (first answer) in green before dropping
+    var filledWord = answers[0].toUpperCase();
+    puzzleEl.textContent = filledWord;
+    puzzleEl.style.color = '#6f6';
+    puzzleEl.classList.add('flashing');
+    setTimeout(function(){
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      dropLine();
+    }, 1000);
     } else {
       newPuzzle();
     }
