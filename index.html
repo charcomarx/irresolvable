@@ -736,27 +736,34 @@ function handleAnswer(userSaysYes){
       document.getElementById('fapoNumber').textContent = fapoNumber;
     }
   }
-  
   if(correct){
-    // CORRECT ANSWER
-    if(tabLevel > 0){
-      tabLevel--;
-      if(tabLevel === 0) score = 0;
-    } else {
-      score++;
-    }
-    updateScoreDisplay();
-    
-    // Flash white
-    locked = true;
-    puzzleEl.classList.add('flashing');
-    setTimeout(function(){
-      puzzleEl.classList.remove('flashing');
-      puzzleEl.textContent = '';
-      newPuzzle();
-      locked = false;
-    }, 1000);
-    
+  // CORRECT ANSWER
+  if(tabLevel > 0){
+    tabLevel--;
+    if(tabLevel === 0) score = 0;
+  } else {
+    score++;
+  }
+  updateScoreDisplay();
+  
+  // Show the filled word (same as missed word but white)
+  var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
+  var prefix = '';
+  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+  puzzleEl.textContent = prefix + filledWord;
+  
+  // Flash white
+  locked = true;
+  puzzleEl.style.color = '#fff';
+  puzzleEl.classList.add('flashing');
+  setTimeout(function(){
+    puzzleEl.classList.remove('flashing');
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    newPuzzle();
+    locked = false;
+  }, 1000);
+}
   } else {
     // INCORRECT ANSWER
     if(score < 0){
