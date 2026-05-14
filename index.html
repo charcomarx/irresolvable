@@ -764,16 +764,14 @@ function handleAnswer(userSaysYes){
       newPuzzle();
       locked = false;
     }, 1000);
+
+
+      } else {
+    // INCORRECT ANSWER - always go to tab 1, reset score
+    score = -1;
+    tabLevel = 1;
     
-  } else {
-    // INCORRECT ANSWER
-    if(score < 0){
-      tabLevel++;
-    } else {
-      score = -1;
-      tabLevel = 1;
-    }
-    
+    // Show tab shift
     renderPuzzle();
     
     locked = true;
@@ -785,6 +783,9 @@ function handleAnswer(userSaysYes){
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
+        // Reset to left after flash
+        tabLevel = 0;
+        score = 0;
         newPuzzle();
         locked = false;
       }, 1000);
@@ -799,6 +800,9 @@ function handleAnswer(userSaysYes){
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
+        // Reset to left after flash
+        tabLevel = 0;
+        score = 0;
         newPuzzle();
         locked = false;
       }, 1000);
