@@ -612,7 +612,7 @@ function hasObviousCombo(pat) {
 function generateImpossible(){
   var targetShort = Math.random() < 0.20;
 
-  for(var attempt = 0; attempt < 500; attempt++){
+  for(var attempt = 0; attempt < 200; attempt++){
     var template;
     if(targetShort){
       var pool = dict.filter(function(w){ return w.length >= 3 && w.length <= 4; });
@@ -679,7 +679,7 @@ function generateImpossible(){
 }
 // Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
 function generateSolvable(){
-  for(var attempt = 0; attempt < 300; attempt++){
+  for(var attempt = 0; attempt < 150; attempt++){
     // 35% chance to force a short word (3-5 letters), 65% any length
     var useShort = Math.random() < 0.20;
     var word;
@@ -841,6 +841,7 @@ if(correct){
       puzzleEl.classList.add('flashing');
       puzzleEl.classList.add('strikethrough');  
       setTimeout(function(){
+        puzzleEl.classList.remove('strikethrough'); 
         addAnswer(puzzle, null, '#f66');
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
