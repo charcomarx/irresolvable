@@ -770,7 +770,7 @@ function newPuzzle(){
   renderPuzzle();
 }
 function handleAnswer(userSaysYes){
-     if(dict.length === 0) return; 
+  if(dict.length === 0) return; 
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   var flashedWord = null;
@@ -781,53 +781,57 @@ function handleAnswer(userSaysYes){
     flashedWord = chosen;
   }
 
-if(correct){
-  if(tabLevel > 0){
-    tabLevel--;
-    if(tabLevel === 0) score = 0;
-  } else {
-    score++;
-  }
-  updateScoreDisplay();
-    
-  var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
-  var prefix = '';
-  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  puzzleEl.textContent = prefix + filledWord;
-  
-  if(!hasWord){
-    puzzleEl.classList.add('strikethrough');
-  }
-  
-  locked = true;
-  puzzleEl.style.color = '#fff';
-  puzzleEl.classList.add('flashing');
-  setTimeout(function(){
-    if(hasWord && flashedWord){
-      addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
+  if(correct){
+    // CORRECT ANSWER: +1 to score
+    if(tabLevel > 0){
+      tabLevel--;
     } else {
-      addAnswer(puzzle, null, 'white');
+      score++;
     }
-    puzzleEl.classList.remove('flashing');
-    puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    if(!hasWord){
-      puzzleEl.classList.remove('strikethrough');
-    }
-    newPuzzle();
-    locked = false;
-  }, 1000);
+    if(tabLevel === 0 && score < 0) score = 0;
+    updateScoreDisplay();
+      
+    var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
+    var prefix = '';
+    for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+    puzzleEl.textContent = prefix + filledWord;
     
+    if(!hasWord){
+      puzzleEl.classList.add('strikethrough');
+    }
+    
+    locked = true;
+    puzzleEl.style.color = '#fff';
+    puzzleEl.classList.add('flashing');
+    setTimeout(function(){
+      if(hasWord && flashedWord){
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
+      } else {
+        addAnswer(puzzle, null, 'white');
+      }
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      if(!hasWord){
+        puzzleEl.classList.remove('strikethrough');
+      }
+      newPuzzle();
+      locked = false;
+    }, 1000);
+      
   } else {
-    // INCORRECT ANSWER - score goes to 0
-    score = 0;
+    // INCORRECT ANSWER: Show "!" then reset to 0
     tabLevel = 1;
+    
+    // Show "!" in scorebox immediately
+    scoreBox.textContent = '!';
+    scoreBox.className = 'negative';
     
     renderPuzzle();
     locked = true;
     
     if(userSaysYes === true && hasWord === false){
-      // False positive - flash red with random letters
+      // False positive - flash RED with random letters
       fapoNumber++;
       document.getElementById('fapoNumber').textContent = fapoNumber;
       
@@ -839,33 +843,39 @@ if(correct){
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
       puzzleEl.textContent = prefix + filledPattern;
-      puzzleEl.style.color = '#f66';
+      puzzleEl.style.color = '#f66';  // RED FLASH
       puzzleEl.classList.add('flashing');
       puzzleEl.classList.add('strikethrough');  
       setTimeout(function(){
         puzzleEl.classList.remove('strikethrough'); 
-        addAnswer(puzzle, null, '#f66');
+        addAnswer(puzzle, null, '#f66');  // RED LIST
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
         tabLevel = 0;
+        // Reset score to 0 AFTER list is added
+        score = 0;
+        updateScoreDisplay();
         newPuzzle();
         locked = false;
       }, 1000);
       
     } else if(userSaysYes === false && hasWord === true){
-      // Missed word - show filled word, flash green
+      // Missed word - flash GREEN, list GREEN
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
       puzzleEl.textContent = prefix + flashedWord.toUpperCase();
-      puzzleEl.style.color = '#6f6';
+      puzzleEl.style.color = '#6f6';  // GREEN FLASH
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
-        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');  // GREEN LIST
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
         tabLevel = 0;
+        // Reset score to 0 AFTER list is added
+        score = 0;
+        updateScoreDisplay();
         newPuzzle();
         locked = false;
       }, 1000);
