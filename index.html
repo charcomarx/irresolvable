@@ -761,7 +761,8 @@ function newPuzzle(){
   
   renderPuzzle();
 }
-function handleAnswer(userSaysYes){
+
+  function handleAnswer(userSaysYes){
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   var flashedWord = null;
@@ -770,50 +771,66 @@ function handleAnswer(userSaysYes){
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     flashedWord = chosen;
-  } else {
-    
-    if(userSaysYes === true && hasWord === false){
-  // False positive - flash red with random letters
-  var filledPattern = puzzle;
-  var randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  
-  // Replace each underscore with a random letter
-  while(filledPattern.indexOf('_') !== -1){
-    filledPattern = filledPattern.replace('_', randomLetters[Math.floor(Math.random() * randomLetters.length)]);
   }
   
-  // Use the same tab prefix
-  var prefix = '';
-  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  puzzleEl.textContent = prefix + filledPattern;
-  
-  puzzleEl.style.color = '#f66';
-  puzzleEl.classList.add('flashing');
-  setTimeout(function(){
-    addAnswer(puzzle, null, '#f66');  // List still shows puzzle pattern
-    puzzleEl.classList.remove('flashing');
+  if(correct){
+    // CORRECT ANSWER (white flash)
+    if(tabLevel > 0){
+      tabLevel--;
+      if(tabLevel === 0) score = 0;
+    } else {
+      score++;
+    }
+    updateScoreDisplay();
+    
+    tabLevel = 1;
+    
+    var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
+    var prefix = '';
+    for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+    puzzleEl.textContent = prefix + filledWord;
+    
+    locked = true;
     puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    tabLevel = 0;
-    score = 0;
-    newPuzzle();
-    locked = false;
-  }, 1000);
-}
-else {
+    puzzleEl.classList.add('flashing');
+    setTimeout(function(){
+      if(hasWord && flashedWord){
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
+      } else {
+        addAnswer(puzzle, null, 'white');
+      }
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      tabLevel = 0;
+      newPuzzle();
+      locked = false;
+    }, 1000);
+    
+  } else {
     // INCORRECT ANSWER
     score = -1;
     tabLevel = 1;
     
     renderPuzzle();
-    
     locked = true;
+    
     if(userSaysYes === true && hasWord === false){
-      // False positive - flash red
+      // False positive - flash red with random letters
+      fapoNumber++;
+      document.getElementById('fapoNumber').textContent = fapoNumber;
+      
+      var filledPattern = puzzle;
+      var randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      while(filledPattern.indexOf('_') !== -1){
+        filledPattern = filledPattern.replace('_', randomLetters[Math.floor(Math.random() * randomLetters.length)]);
+      }
+      var prefix = '';
+      for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+      puzzleEl.textContent = prefix + filledPattern;
       puzzleEl.style.color = '#f66';
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
-        // ADD ANSWER AFTER FLASH
         addAnswer(puzzle, null, '#f66');
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
@@ -823,6 +840,7 @@ else {
         newPuzzle();
         locked = false;
       }, 1000);
+      
     } else if(userSaysYes === false && hasWord === true){
       // Missed word - show filled word, flash green
       var prefix = '';
@@ -831,7 +849,6 @@ else {
       puzzleEl.style.color = '#6f6';
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
-        // ADD ANSWER AFTER FLASH
         addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
@@ -841,6 +858,7 @@ else {
         newPuzzle();
         locked = false;
       }, 1000);
+      
     } else {
       newPuzzle();
     }
