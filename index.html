@@ -154,11 +154,11 @@ font-size:20px;
 
 @keyframes scoreFlash{
   0%{ transform: scale(1); }
-  50%{ transform: scale(1.1); border-color: #6f6; }
+  50%{ transform: scale(1.4); border-color: #6f6; }
   100%{ transform: scale(1); }
 }
 .score-flash{
-  animation: scoreFlash 0.3s ease-in-out;
+  animation: scoreFlash 0.8s ease-in-out;
 }
 
 
@@ -287,7 +287,7 @@ font-size:20px;
 }
 
 #scorebox.zero{
-  color: #fff;
+  color: #f66;
   border-color: #fff;
 }
 #buttons{
@@ -752,7 +752,7 @@ function generateSolvable(){
     }
     if(!word) continue;
     
-    var blankCount = 1 + (Math.random() < 0.3 ? 2 : 1);
+    var blankCount = 1 + Math.floor(Math.random() * 4); // 1, 2, 3, or 4 blanks
     blankCount = Math.min(blankCount, word.length - 2);
     
     var chars = word.split('');
@@ -786,7 +786,7 @@ function newPuzzle(){
     return;
   }
   
-  var isImpossible = Math.random() < 0.33;
+  var isImpossible = Math.random() < 0.30;
   
   if(isImpossible){
     puzzle = generateImpossible();
