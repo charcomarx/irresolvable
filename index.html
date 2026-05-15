@@ -819,50 +819,47 @@ function newPuzzle(){
   renderPuzzle();
 }
   function getWeightedRandomLetter(existingLetters){
-  // Count vowels and consonants already revealed
+  var vowels = 'AEIOU';
+  var commonConsonants = 'RSTLN';
+  var otherConsonants = 'BCDFGHJKMPQWXYZ';
+  
+  // Count existing letters
   var vowelCount = 0;
   var consonantCount = 0;
-  var vowels = 'AEIOU';
+  var commonCount = 0;
   
   for(var i = 0; i < existingLetters.length; i++){
     if(vowels.indexOf(existingLetters[i]) !== -1){
       vowelCount++;
     } else if(existingLetters[i] !== '_'){
       consonantCount++;
+      if(commonConsonants.indexOf(existingLetters[i]) !== -1){
+        commonCount++;
+      }
     }
   }
   
-  // If more vowels exist, favor consonants (and vice versa)
-  var preferVowel = consonantCount > vowelCount;
+  // Prefer vowels if many consonants, prefer common consonants if many vowels
+  var preferVowel = consonantCount > vowelCount + 1;
+  var preferCommon = vowelCount > consonantCount;
   
   var letters = '';
-  if(preferVowel){
-    letters = 'AEIOU';  // 100% vowels
-  } else {
-    letters = 'BCDFGHJKLMNPQRSTVWXYZ';  // consonants only
-  }
+  var rand = Math.random();
   
-  // Add some randomness - 20% chance to pick from opposite set
-  if(Math.random() < 0.2){
-    letters = preferVowel ? 'BCDFGHJKLMNPQRSTVWXYZ' : 'AEIOU';
+  if(preferVowel){
+    letters = vowels;
+  } else if(preferCommon){
+    letters = commonConsonants;
+  } else {
+    // Mix based on probability
+    if(rand < 0.4) letters = vowels;
+    else if(rand < 0.7) letters = commonConsonants;
+    else letters = otherConsonants;
   }
   
   return letters[Math.floor(Math.random() * letters.length)];
 }
-  function tryRealWordFill(pattern){
-  // Try to fill blanks to create a real word from dictionary
-  var blankCount = (pattern.match(/_/g) || []).length;
-  if(blankCount === 0) return null;
   
-  // Get all possible real words that could fit this pattern
-  var candidates = findAnswers(pattern);
-  if(candidates.length > 0){
-    // Pick a random real word that fits
-    var realWord = candidates[Math.floor(Math.random() * candidates.length)];
-    return realWord.toUpperCase();
-  }
-  return null;
-}
 function handleAnswer(userSaysYes){
   puzzleEl.classList.remove('waiting'); 
   if(dict.length === 0) return; 
@@ -926,8 +923,7 @@ function handleAnswer(userSaysYes){
     
     renderPuzzle();
     locked = true;
-
-    if(userSaysYes === true && hasWord === false){
+if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
   
@@ -936,20 +932,13 @@ function handleAnswer(userSaysYes){
   var maxAttempts = 10;
   
   do {
-    // First try to fill with a REAL word from dictionary
-    var realWordFill = tryRealWordFill(puzzle);
-    
-    if(realWordFill && Math.random() < 0.7){ // 70% chance to use real word if available
-      filledPattern = realWordFill;
-    } else {
-      // Otherwise generate random weighted fill
-      filledPattern = puzzle;
-      var existingChars = filledPattern.split('');
-      while(filledPattern.indexOf('_') !== -1){
-        var weightedLetter = getWeightedRandomLetter(existingChars);
-        filledPattern = filledPattern.replace('_', weightedLetter);
-        existingChars = filledPattern.split('');
-      }
+    // Generate weighted random fill
+    filledPattern = puzzle;
+    var existingChars = filledPattern.split('');
+    while(filledPattern.indexOf('_') !== -1){
+      var weightedLetter = getWeightedRandomLetter(existingChars);
+      filledPattern = filledPattern.replace('_', weightedLetter);
+      existingChars = filledPattern.split('');
     }
     attempts++;
     if(attempts >= maxAttempts) break;
@@ -960,21 +949,20 @@ function handleAnswer(userSaysYes){
   puzzleEl.textContent = prefix + filledPattern;
   puzzleEl.style.color = '#f66';
   puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        puzzleEl.classList.remove('strikethrough'); 
-        addAnswer(puzzle, null, '#f66');  // RED LIST
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.style.color = '#fff';
-        puzzleEl.textContent = '';
-        tabLevel = 0;
-        // Reset score to 0 AFTER list is added
-        score = 0;
-        updateScoreDisplay();
-        newPuzzle();
-        locked = false;
-      }, 1500);
-      
-    } else if(userSaysYes === false && hasWord === true){
+  setTimeout(function(){
+    puzzleEl.classList.remove('strikethrough'); 
+    addAnswer(puzzle, null, '#f66');
+    puzzleEl.classList.remove('flashing');
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    tabLevel = 0;
+    score = 0;
+    updateScoreDisplay();
+    newPuzzle();
+    locked = false;
+  }, 1500);
+}
+else if(userSaysYes === false && hasWord === true){
       // Missed word - flash G, list GREEN
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
