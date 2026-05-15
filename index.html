@@ -43,6 +43,9 @@ html,body{
   color:#000;
   font-weight:bold;
 }
+  #puzzleline.strikethrough{
+  text-decoration: line-through;
+}
 #highscoreNumber{
   position:fixed;
   top:106px;
@@ -772,40 +775,46 @@ function newPuzzle(){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     flashedWord = chosen;
   }
+
+if(correct){
+  if(tabLevel > 0){
+    tabLevel--;
+    if(tabLevel === 0) score = 0;
+  } else {
+    score++;
+  }
+  updateScoreDisplay();
   
-  if(correct){
-    // CORRECT ANSWER (white flash)
-    if(tabLevel > 0){
-      tabLevel--;
-      if(tabLevel === 0) score = 0;
+  tabLevel = 1;
+  
+  var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
+  var prefix = '';
+  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+  puzzleEl.textContent = prefix + filledWord;
+  
+  if(!hasWord){
+    puzzleEl.classList.add('strikethrough');
+  }
+  
+  locked = true;
+  puzzleEl.style.color = '#fff';
+  puzzleEl.classList.add('flashing');
+  setTimeout(function(){
+    if(hasWord && flashedWord){
+      addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
     } else {
-      score++;
+      addAnswer(puzzle, null, 'white');
     }
-    updateScoreDisplay();
-    
-    tabLevel = 1;
-    
-    var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
-    var prefix = '';
-    for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-    puzzleEl.textContent = prefix + filledWord;
-    
-    locked = true;
+    puzzleEl.classList.remove('flashing');
     puzzleEl.style.color = '#fff';
-    puzzleEl.classList.add('flashing');
-    setTimeout(function(){
-      if(hasWord && flashedWord){
-        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
-      } else {
-        addAnswer(puzzle, null, 'white');
-      }
-      puzzleEl.classList.remove('flashing');
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      tabLevel = 0;
-      newPuzzle();
-      locked = false;
-    }, 1000);
+    puzzleEl.textContent = '';
+    if(!hasWord){
+      puzzleEl.classList.remove('strikethrough');
+    }
+    tabLevel = 0;
+    newPuzzle();
+    locked = false;
+  }, 1000);
     
   } else {
     // INCORRECT ANSWER
@@ -830,6 +839,7 @@ function newPuzzle(){
       puzzleEl.textContent = prefix + filledPattern;
       puzzleEl.style.color = '#f66';
       puzzleEl.classList.add('flashing');
+      puzzleEl.classList.add('strikethrough');  
       setTimeout(function(){
         addAnswer(puzzle, null, '#f66');
         puzzleEl.classList.remove('flashing');
