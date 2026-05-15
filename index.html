@@ -150,14 +150,14 @@ font-size:20px;
   100%{ transform: scale(1); }
 }
 .score-flash{
-  animation: scoreFlash 0.3s ease-in-out;
+  animation: scoreFlash 01.25s steps(1) infinite;
 }
   @keyframes scoreBlink{
   0%,100%{ color: #fff; border-color: #000; }
   50%{ color: #6f6; border-color: #6f6;}
     0%,100%{ opacity: 1; }
-  90%{ opacity: 1; }
-  95%{ opacity: 0; }
+  50%{ opacity: 1; }
+  50%{ opacity: 0; }
 }
 .score-blinking{
   animation: scoreBlink 1s 1.25s steps(1) infinite;
