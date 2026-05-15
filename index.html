@@ -554,9 +554,8 @@ function findAnswers(pattern){
     return matches;
   } catch(e){ return []; }
 }
-
-  function hasObviousCombo(pat) {
-  var blocked = {
+function hasObviousCombo(pat) {
+  var blockedAnywhere = {
     'II':1,'UU':1,'KK':1,'XX':1,'AA':1,
     'QA':1,'QB':1,'QC':1,'QD':1,'QE':1,'QF':1,'QG':1,'QH':1,
     'QJ':1,'QK':1,'QL':1,'QM':1,'QN':1,'QO':1,'QP':1,'QQ':1,
@@ -566,15 +565,15 @@ function findAnswers(pattern){
     'FP':1,'FX':1,'GX':1,'GZ':1,
     'JB':1,'JD':1,'JF':1,'JG':1,'JH':1,'JK':1,'JL':1,'JM':1,
     'JN':1,'JP':1,'JQ':1,'JR':1,'JS':1,'JT':1,'JV':1,'JW':1,
-    'JX':1,'JY':1,'JZ':1,'JJ':1
+    'JX':1,'JY':1,'JZ':1,'JJ':1,
     'KB':1,'KD':1,'KF':1,'KG':1,'KJ':1,'KM':1,'KP':1,'KQ':1,
     'KT':1,'KV':1,'KX':1,'KZ':1,
     'PF':1,'PX':1,
     'VB':1,'VD':1,'VF':1,'VG':1,'VH':1,'VJ':1,'VK':1,'VL':1,
     'VM':1,'VN':1,'VP':1,'VQ':1,'VR':1,'VS':1,'VT':1,'VW':1,
-    'VX':1,'VZ':1,'VV':1,'YY':1,'HH':1,'WW':1  
+    'VX':1,'VZ':1,'VV':1,'YY':1,'HH':1,'WW':1
   };
-    var blockedAtStart = {
+  var blockedAtStart = {
     'RC':1,'RG':1,'RK':1,'RL':1,'RM':1,'RN':1,'RP':1,'RT':1,'RV':1,
     'NC':1,'NG':1,'NK':1,'NP':1,'NR':1,'NT':1,'NV':1,
     'TC':1,'TG':1,'TK':1,'TM':1,'TP':1,'TV':1,
@@ -593,14 +592,12 @@ function findAnswers(pattern){
     'HL':1,'HM':1,'HN':1,'HP':1,'HR':1,'HT':1,'HV':1
   };
 
-  // check adjacent revealed pairs anywhere
   for(var i = 0; i < pat.length - 1; i++){
     if(pat[i] === '_' || pat[i+1] === '_') continue;
     var pair = pat[i] + pat[i+1];
     if(blockedAnywhere[pair]) return true;
   }
 
-  // find first two revealed letters and check word-start block
   var revealed = [];
   for(var i = 0; i < pat.length; i++){
     if(pat[i] !== '_') revealed.push(pat[i]);
@@ -611,24 +608,26 @@ function findAnswers(pattern){
   return false;
 }
 
-// Generate IMPOSSIBLE puzzle - start with a non-word, then blank it
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
-    // Get a random word to use as template
-    var template = dict[Math.floor(Math.random() * dict.length)];
+
+    var template;
+    if(attempt < 150){
+      var shortWords = dict.filter(function(w){ return w.length >= 3 && w.length <= 4; });
+      template = shortWords[Math.floor(Math.random() * shortWords.length)];
+    } else {
+      template = dict[Math.floor(Math.random() * dict.length)];
+    }
     if(!template || template.length < 3) continue;
-    
+
     var chars = template.split('');
-    
-    // Aggressively change 50% of the letters (minimum 2, maximum 4)
     var changeCount = chars.length <= 3 ? 1 : Math.max(2, Math.floor(chars.length / 2));
     changeCount = Math.min(changeCount, 4);
-    
+
     for(var c = 0; c < changeCount; c++){
       var pos = Math.floor(Math.random() * chars.length);
       var originalChar = chars[pos];
       var newChar;
-      
       if('aeiou'.indexOf(originalChar) !== -1){
         var vowels = ['a','e','i','o','u'];
         var others = vowels.filter(function(v){ return v !== originalChar; });
@@ -642,12 +641,10 @@ function generateImpossible(){
       }
       chars[pos] = newChar;
     }
-    
-    // Verify this is NOT a real word
+
     var nonWord = chars.join('');
     if(findAnswers(nonWord).length > 0) continue;
-    
-    // Blank out 2-4 positions
+
     var blankCount = nonWord.length <= 3 ? 1 : 2 + Math.floor(Math.random() * 3);
     blankCount = Math.min(blankCount, nonWord.length - 1);
     var positions = [];
@@ -657,32 +654,26 @@ function generateImpossible(){
     for(var i = 0; i < positions.length; i++){
       finalChars[positions[i]] = '_';
     }
-    
+
     var pattern = finalChars.join('').toUpperCase();
-    var matches = findAnswers(pattern);
-    
-    if(matches.length === 0){
-      return pattern;
-    }
+    if(findAnswers(pattern).length > 0) continue;
+    if(hasObviousCombo(pattern)) continue;
+
+    return pattern;
   }
-  
-  // Fallback - random pattern
+
+  // fallback
   var letters = 'BCDFGHKLMNPQRSTVWXYZ';
-  var vowels = 'AEIOU';
+  var vowelsF = 'AEIOU';
   var fallback = '';
   var len = 6 + Math.floor(Math.random() * 3);
   for(var i = 0; i < len; i++){
-    if(Math.random() < 0.4){
-      fallback += '_';
-    } else if(Math.random() < 0.7){
-      fallback += letters[Math.floor(Math.random() * letters.length)];
-    } else {
-      fallback += vowels[Math.floor(Math.random() * vowels.length)];
-    }
+    if(Math.random() < 0.4) fallback += '_';
+    else if(Math.random() < 0.7) fallback += letters[Math.floor(Math.random() * letters.length)];
+    else fallback += vowelsF[Math.floor(Math.random() * vowelsF.length)];
   }
   return fallback;
 }
-
 // Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
