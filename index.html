@@ -123,13 +123,15 @@ font-size:20px;
   font-family:'Courier New',Courier,monospace;
   overflow: hidden;
   width: fit-content;
-}
 @keyframes typing{
   0%{ width: 0; }
   100%{ width: 100%; }
 }
 .typing{
-animation: typing 4s steps(6) infinite;;
+  animation: typing 2s ease-in-out infinite alternate;
+  white-space: nowrap;
+  overflow: hidden;
+  width: fit-content;
 }
 #puzzleline.warning{
   color:#f66;
@@ -434,7 +436,7 @@ font-family: 'Arial', sans-serif;
 </div>
 <div id="wrap">
 <div id="puzzlerow"></div>
-<div id="puzzleline" class="typing">______</div>
+<div id="puzzleline" class="typing">___</div>
   <div id="gap"></div>
   <div id="answerrow"></div>
   <div id="answerblock"></div>
