@@ -262,7 +262,7 @@ font-size:20px;
   top:2px;
   left:4px;
   background:#000;
-  color:#fff;
+  color:#f66;
   border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:64px;
@@ -516,19 +516,16 @@ var fapoNumber = 0;
     scoreBox.className = 'positive';
     scoreBox.style.color = '#fff';
     scoreBox.style.borderColor = '#fff';
-    scoreBox.classList.add('score-blinking');
   } else if(score < 0){
     scoreBox.textContent = '!';
     scoreBox.className = 'negative';
     scoreBox.style.color = '#f66';
     scoreBox.style.borderColor = '#f66';
-    scoreBox.classList.remove('score-blinking');
   } else {
     scoreBox.textContent = '0';
     scoreBox.className = 'zero';
     scoreBox.style.color = '#fff';
     scoreBox.style.borderColor = '#fff';
-    scoreBox.classList.remove('score-blinking');
   }
   updateHighScore(); 
 }
