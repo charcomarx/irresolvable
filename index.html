@@ -407,7 +407,7 @@ font-family: 'Arial', sans-serif;
 </style>
 </head>
 <body>
-<div id="title">D_TA__<span style="color:#f66;">W_RD</span><br><span style="color:#f66;">O</span>_ KN_T?</div>
+<div id="title">_ZZ D_TA__<span style="color:#f66;">W_RD</span><br><span style="color:#f66;">O</span>_ KN_T?</div>
   <div id="titleSpacer"></div>
 <div id="instruction">_S <span style="font-weight:bold;">THIS</span>?</div> 
 <div id="instruction2">G E T _ A N Y<br><span style="color:#f66;">W R _ N G</span>...<br>G O _ T O _ <span style="color:#f66;">0</span> !</span></div>
@@ -560,7 +560,7 @@ function findAnswers(pattern){
     'QA':1,'QB':1,'QC':1,'QD':1,'QE':1,'QF':1,'QG':1,'QH':1,
     'QJ':1,'QK':1,'QL':1,'QM':1,'QN':1,'QO':1,'QP':1,'QQ':1,
     'QR':1,'QS':1,'QT':1,'QV':1,'QW':1,'QX':1,'QY':1,'QZ':1,
-    'XQ':1,'ZX':1,'ZQ':1,'ZJ':1,
+    'XQ':1,'ZX':1,'ZQ':1,'ZJ':1,'XZ':1,
     'BG':1,'BP':1,'BT':1,'BX':1,
     'FP':1,'FX':1,'GX':1,'GZ':1,
     'JB':1,'JD':1,'JF':1,'JG':1,'JH':1,'JK':1,'JL':1,'JM':1,
@@ -573,13 +573,43 @@ function findAnswers(pattern){
     'VM':1,'VN':1,'VP':1,'VQ':1,'VR':1,'VS':1,'VT':1,'VW':1,
     'VX':1,'VZ':1
   };
-  for (var i = 0; i < pat.length - 1; i++) {
-    if (pat[i] === '_' || pat[i+1] === '_') continue;
+    var blockedAtStart = {
+    'RC':1,'RG':1,'RK':1,'RL':1,'RM':1,'RN':1,'RP':1,'RT':1,'RV':1,
+    'NC':1,'NG':1,'NK':1,'NP':1,'NR':1,'NT':1,'NV':1,
+    'TC':1,'TG':1,'TK':1,'TM':1,'TP':1,'TV':1,
+    'DC':1,'DG':1,'DK':1,'DM':1,'DP':1,'DT':1,'DV':1,
+    'GD':1,'GK':1,'GM':1,'GP':1,'GT':1,'GV':1,
+    'BC':1,'BD':1,'BF':1,'BK':1,'BM':1,'BN':1,'BV':1,
+    'FC':1,'FD':1,'FK':1,'FM':1,'FN':1,'FT':1,'FV':1,
+    'LB':1,'LC':1,'LD':1,'LF':1,'LG':1,'LJ':1,'LK':1,
+    'LM':1,'LN':1,'LP':1,'LT':1,'LV':1,
+    'MB':1,'MC':1,'MD':1,'MF':1,'MG':1,'MK':1,'ML':1,
+    'MN':1,'MP':1,'MT':1,'MV':1,
+    'SB':1,'SD':1,'SF':1,'SJ':1,'SR':1,'SV':1,
+    'CB':1,'CD':1,'CF':1,'CG':1,'CK':1,'CM':1,'CN':1,
+    'CP':1,'CS':1,'CT':1,'CV':1,'CX':1,'CZ':1,
+    'HB':1,'HC':1,'HD':1,'HF':1,'HG':1,'HJ':1,'HK':1,
+    'HL':1,'HM':1,'HN':1,'HP':1,'HR':1,'HT':1,'HV':1
+  };
+
+  // check adjacent revealed pairs anywhere
+  for(var i = 0; i < pat.length - 1; i++){
+    if(pat[i] === '_' || pat[i+1] === '_') continue;
     var pair = pat[i] + pat[i+1];
-    if (blocked[pair]) return true;
+    if(blockedAnywhere[pair]) return true;
   }
+
+  // find first two revealed letters and check word-start block
+  var revealed = [];
+  for(var i = 0; i < pat.length; i++){
+    if(pat[i] !== '_') revealed.push(pat[i]);
+    if(revealed.length === 2) break;
+  }
+  if(revealed.length === 2 && blockedAtStart[revealed[0]+revealed[1]]) return true;
+
   return false;
 }
+
 // Generate IMPOSSIBLE puzzle - start with a non-word, then blank it
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
