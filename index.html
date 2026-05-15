@@ -560,7 +560,7 @@ function hasObviousCombo(pat) {
     'QA':1,'QB':1,'QC':1,'QD':1,'QE':1,'QF':1,'QG':1,'QH':1,
     'QJ':1,'QK':1,'QL':1,'QM':1,'QN':1,'QO':1,'QP':1,'QQ':1,
     'QR':1,'QS':1,'QT':1,'QV':1,'QW':1,'QX':1,'QY':1,'QZ':1,
-    'XQ':1,'ZX':1,'ZQ':1,'ZJ':1,'XZ':1,
+    'XQ':1,'XB':1,'ZX':1,'ZQ':1,'ZJ':1,'XZ':1,
     'BG':1,'BP':1,'BT':1,'BX':1,
     'FP':1,'FX':1,'GX':1,'GZ':1,
     'JB':1,'JD':1,'JF':1,'JG':1,'JH':1,'JK':1,'JL':1,'JM':1,
@@ -635,7 +635,7 @@ function generateImpossible(){
         if(others.length === 0) continue;
         newChar = others[Math.floor(Math.random() * others.length)];
       } else {
-        var consonants = 'bcdfghklmnpqrstvwxyz'.split('');
+        var consonants = 'bcdfghklmnprstvw'.split('');
         var otherConsonants = consonants.filter(function(c){ return c !== originalChar; });
         if(otherConsonants.length === 0) continue;
         newChar = otherConsonants[Math.floor(Math.random() * otherConsonants.length)];
