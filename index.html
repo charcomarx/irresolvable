@@ -849,6 +849,20 @@ function newPuzzle(){
   
   return letters[Math.floor(Math.random() * letters.length)];
 }
+  function tryRealWordFill(pattern){
+  // Try to fill blanks to create a real word from dictionary
+  var blankCount = (pattern.match(/_/g) || []).length;
+  if(blankCount === 0) return null;
+  
+  // Get all possible real words that could fit this pattern
+  var candidates = findAnswers(pattern);
+  if(candidates.length > 0){
+    // Pick a random real word that fits
+    var realWord = candidates[Math.floor(Math.random() * candidates.length)];
+    return realWord.toUpperCase();
+  }
+  return null;
+}
 function handleAnswer(userSaysYes){
   puzzleEl.classList.remove('waiting'); 
   if(dict.length === 0) return; 
@@ -912,26 +926,34 @@ function handleAnswer(userSaysYes){
     
     renderPuzzle();
     locked = true;
-    
-   if(userSaysYes === true && hasWord === false){
+
+    if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
   
   var filledPattern;
   var attempts = 0;
-  var maxAttempts = 20;
+  var maxAttempts = 10;
   
   do {
-  filledPattern = puzzle;
-  var existingChars = filledPattern.split('');
-  while(filledPattern.indexOf('_') !== -1){
-    var weightedLetter = getWeightedRandomLetter(existingChars);
-    filledPattern = filledPattern.replace('_', weightedLetter);
-    existingChars = filledPattern.split('');
-  }
-  attempts++;
-  if(attempts >= maxAttempts) break;
-} while(!isPlausiblePattern(filledPattern));
+    // First try to fill with a REAL word from dictionary
+    var realWordFill = tryRealWordFill(puzzle);
+    
+    if(realWordFill && Math.random() < 0.7){ // 70% chance to use real word if available
+      filledPattern = realWordFill;
+    } else {
+      // Otherwise generate random weighted fill
+      filledPattern = puzzle;
+      var existingChars = filledPattern.split('');
+      while(filledPattern.indexOf('_') !== -1){
+        var weightedLetter = getWeightedRandomLetter(existingChars);
+        filledPattern = filledPattern.replace('_', weightedLetter);
+        existingChars = filledPattern.split('');
+      }
+    }
+    attempts++;
+    if(attempts >= maxAttempts) break;
+  } while(!isPlausiblePattern(filledPattern));
   
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
