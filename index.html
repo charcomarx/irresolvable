@@ -1019,7 +1019,7 @@ var TWL_FALLBACK = [
   'brain','train','grain','drain','plain','main','pain','rain','vain','chain',
   'drive','strive','thrive','alive','hive','dive','live','place','space','grace'
 ];
-async function loadDict(){
+  async function loadDict(){
   setStatus('loading Scrabble dictionary...');
   
   // Start loading animation
@@ -1055,14 +1055,11 @@ async function loadDict(){
   }
   
   // Start game immediately when dictionary is ready
-  // The animation will either complete or be cut short
   puzzleEl.classList.remove('loading-once');
   puzzleEl.classList.add('typing');
   updateScoreDisplay();
   newPuzzle();
-
-
-  
+}
 
 loadMessages();
 loadDict();
