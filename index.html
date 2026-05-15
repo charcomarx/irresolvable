@@ -855,7 +855,6 @@ function handleAnswer(userSaysYes){
       puzzleEl.textContent = prefix + filledPattern;
       puzzleEl.style.color = '#f66';  // RED FLASH
       puzzleEl.classList.add('flashing');
-      puzzleEl.classList.add('strikethrough');  
       setTimeout(function(){
         puzzleEl.classList.remove('strikethrough'); 
         addAnswer(puzzle, null, '#f66');  // RED LIST
@@ -871,11 +870,11 @@ function handleAnswer(userSaysYes){
       }, 1000);
       
     } else if(userSaysYes === false && hasWord === true){
-      // Missed word - flash GREEN, list GREEN
+      // Missed word - flash red, list GREEN
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
       puzzleEl.textContent = prefix + flashedWord.toUpperCase();
-      puzzleEl.style.color = '#6f6';  // GREEN FLASH
+      puzzleEl.style.color = '#f66';  // red FLASH
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
         addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');  // GREEN LIST
