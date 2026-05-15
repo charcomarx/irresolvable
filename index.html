@@ -158,7 +158,7 @@ font-size:20px;
   100%{ transform: scale(1); }
 }
 .score-flash{
-  animation: scoreFlash 1.1s ease-in-out;
+  animation: scoreFlash 0.8s ease-in-out;
 }
 
 
@@ -955,7 +955,7 @@ if(userSaysYes === true && hasWord === false){
   
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  puzzleEl.textContent = prefix + filledPattern;
+  puzzleEl.textContent = prefix + filledPattern + '?';
   puzzleEl.style.color = '#f66';
   puzzleEl.classList.add('flashing');
   setTimeout(function(){
