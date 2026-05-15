@@ -800,6 +800,37 @@ function newPuzzle(){
   
   renderPuzzle();
 }
+  function getWeightedRandomLetter(existingLetters){
+  // Count vowels and consonants already revealed
+  var vowelCount = 0;
+  var consonantCount = 0;
+  var vowels = 'AEIOU';
+  
+  for(var i = 0; i < existingLetters.length; i++){
+    if(vowels.indexOf(existingLetters[i]) !== -1){
+      vowelCount++;
+    } else if(existingLetters[i] !== '_'){
+      consonantCount++;
+    }
+  }
+  
+  // If more vowels exist, favor consonants (and vice versa)
+  var preferVowel = consonantCount > vowelCount;
+  
+  var letters = '';
+  if(preferVowel){
+    letters = 'AEIOU';  // 100% vowels
+  } else {
+    letters = 'BCDFGHJKLMNPQRSTVWXYZ';  // consonants only
+  }
+  
+  // Add some randomness - 20% chance to pick from opposite set
+  if(Math.random() < 0.2){
+    letters = preferVowel ? 'BCDFGHJKLMNPQRSTVWXYZ' : 'AEIOU';
+  }
+  
+  return letters[Math.floor(Math.random() * letters.length)];
+}
 function handleAnswer(userSaysYes){
   puzzleEl.classList.remove('waiting'); 
   if(dict.length === 0) return; 
@@ -870,10 +901,13 @@ function handleAnswer(userSaysYes){
       document.getElementById('fapoNumber').textContent = fapoNumber;
       
       var filledPattern = puzzle;
-      var randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      while(filledPattern.indexOf('_') !== -1){
-        filledPattern = filledPattern.replace('_', randomLetters[Math.floor(Math.random() * randomLetters.length)]);
-      }
+var existingLetters = filledPattern.split('');
+while(filledPattern.indexOf('_') !== -1){
+  var weightedLetter = getWeightedRandomLetter(existingLetters);
+  filledPattern = filledPattern.replace('_', weightedLetter);
+  // Update existing letters for next replacement
+  existingLetters = filledPattern.split('');
+}
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
       puzzleEl.textContent = prefix + filledPattern;
