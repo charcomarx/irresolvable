@@ -257,12 +257,12 @@ font-size:20px;
 }
 
 /* Top controls: Score left, Y/N buttons right */
+
 #scorebox{
   position:fixed;
   top:2px;
   left:4px;
   background:#000;
-  color:#fff;
   border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:64px;
@@ -278,20 +278,19 @@ font-size:20px;
 }
 
 #scorebox.positive{
-  color:#6f6;
-  border-color:#6f6;
+  color: #fff;
+  border-color: #fff;
 }
-  
+
 #scorebox.negative{
-  color:#f66;
-  border-color:#f66;
+  color: #f66;
+  border-color: #f66;
 }
 
 #scorebox.zero{
-  color:#fff;
-  border-color:#fff;
+  color: #fff;
+  border-color: #fff;
 }
-
 #buttons{
   position:fixed;
   top:380px;
@@ -510,22 +509,16 @@ var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
 
 
- function updateScoreDisplay(){
+function updateScoreDisplay(){
   if(score > 0){
     scoreBox.textContent = '' + score;
     scoreBox.className = 'positive';
-    scoreBox.style.color = '#fff';
-    scoreBox.style.borderColor = '#fff';
   } else if(score < 0){
     scoreBox.textContent = '!';
     scoreBox.className = 'negative';
-    scoreBox.style.color = '#f66';
-    scoreBox.style.borderColor = '#f66';
   } else {
     scoreBox.textContent = '0';
     scoreBox.className = 'zero';
-    scoreBox.style.color = '#fff';
-    scoreBox.style.borderColor = '#fff';
   }
   updateHighScore(); 
 }
@@ -1026,11 +1019,10 @@ var TWL_FALLBACK = [
   'brain','train','grain','drain','plain','main','pain','rain','vain','chain',
   'drive','strive','thrive','alive','hive','dive','live','place','space','grace'
 ];
-
 async function loadDict(){
   setStatus('loading Scrabble dictionary...');
   
-  // Remove typing class and add loading animation
+  // Start loading animation
   puzzleEl.classList.remove('typing');
   puzzleEl.classList.add('loading-once');
   
@@ -1062,14 +1054,15 @@ async function loadDict(){
     setStatus('✓ ' + dict.length + ' words | 70/30');
   }
   
-  // Wait for animation to finish then start game
-  setTimeout(function(){
-    puzzleEl.classList.remove('loading-once');
-    puzzleEl.classList.add('typing');
-    updateScoreDisplay();
-    newPuzzle();
-  }, 2400);
+  // Start game immediately when dictionary is ready
+  // The animation will either complete or be cut short
+  puzzleEl.classList.remove('loading-once');
+  puzzleEl.classList.add('typing');
+  updateScoreDisplay();
+  newPuzzle();
 }
+
+  }
 
 loadMessages();
 loadDict();
