@@ -25,6 +25,7 @@ html,body{
   width:100%;
   height:100%;
 }
+  
 #title{
   background:#fff;
   color:#000;
@@ -133,6 +134,13 @@ font-size:20px;
   white-space: nowrap;
   overflow: hidden;
   width: fit-content;
+}
+  @keyframes blinkAnswer{
+  0%,100%{ opacity: 1; }
+  50%{ opacity: 0.3; }
+}
+.waiting{
+  animation: blinkAnswer 1s ease-in-out infinite;
 }
 #puzzleline.warning{
   color:#f66;
@@ -502,10 +510,8 @@ function updateHighScore(){
     highScore = score;
     document.getElementById('highscoreNumber').textContent = highScore;
   }
-}
-
-function renderPuzzle(){
-   puzzleEl.classList.remove('typing');
+}function renderPuzzle(){
+  puzzleEl.classList.remove('typing');
   puzzleEl.style.borderRight = 'none';
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
@@ -516,12 +522,12 @@ function renderPuzzle(){
   } else {
     puzzleEl.classList.remove('warning');
   }
+  puzzleEl.classList.add('waiting');
 }
-function addAnswer(text, link, color){
+  function addAnswer(text, link, color){
   answerHistory.unshift({text: text, link: link || null, color: color});
   renderAnswers();
 }
-
 function renderAnswers(){
   answerEl.innerHTML = '';
   for(var i = 0; i < answerHistory.length; i++){
@@ -773,6 +779,7 @@ function newPuzzle(){
   renderPuzzle();
 }
 function handleAnswer(userSaysYes){
+  puzzleEl.classList.remove('waiting'); 
   if(dict.length === 0) return; 
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
