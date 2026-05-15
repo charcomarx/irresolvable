@@ -559,7 +559,7 @@ function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
     // Get a random word to use as template
     var template = dict[Math.floor(Math.random() * dict.length)];
-    if(!template || template.length < 5) continue;
+    if(!template || template.length < 3) continue;
     
     var chars = template.split('');
     
@@ -591,7 +591,7 @@ function generateImpossible(){
     if(findAnswers(nonWord).length > 0) continue;
     
     // Blank out 2-4 positions
-    var blankCount = 2 + Math.floor(Math.random() * 3);
+    var blankCount = nonWord.length <= 3 ? 1 : 2 + Math.floor(Math.random() * 3);
     blankCount = Math.min(blankCount, nonWord.length - 1);
     var positions = [];
     for(var i = 0; i < nonWord.length; i++) positions.push(i);
@@ -630,7 +630,7 @@ function generateImpossible(){
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
     // 35% chance to force a short word (3-5 letters), 65% any length
-    var useShort = Math.random() < 0.35;
+    var useShort = Math.random() < 0.30;
     var word;
     
     if(useShort){
@@ -682,7 +682,7 @@ function newPuzzle(){
     return;
   }
   
-  var isImpossible = Math.random() < 0.3;
+  var isImpossible = Math.random() < 0.45;
   
   if(isImpossible){
     puzzle = generateImpossible();
