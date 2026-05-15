@@ -900,7 +900,7 @@ function handleAnswer(userSaysYes){
       }
       newPuzzle();
       locked = false;
-    }, 1000);
+    }, 1500);
       
   } else {
     // INCORRECT ANSWER: Show "!" then reset to 0
@@ -922,14 +922,16 @@ function handleAnswer(userSaysYes){
   var maxAttempts = 20;
   
   do {
-    filledPattern = puzzle;
-    var randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    while(filledPattern.indexOf('_') !== -1){
-      filledPattern = filledPattern.replace('_', randomLetters[Math.floor(Math.random() * randomLetters.length)]);
-    }
-    attempts++;
-    if(attempts >= maxAttempts) break;
-  } while(!isPlausiblePattern(filledPattern));
+  filledPattern = puzzle;
+  var existingChars = filledPattern.split('');
+  while(filledPattern.indexOf('_') !== -1){
+    var weightedLetter = getWeightedRandomLetter(existingChars);
+    filledPattern = filledPattern.replace('_', weightedLetter);
+    existingChars = filledPattern.split('');
+  }
+  attempts++;
+  if(attempts >= maxAttempts) break;
+} while(!isPlausiblePattern(filledPattern));
   
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
@@ -948,7 +950,7 @@ function handleAnswer(userSaysYes){
         updateScoreDisplay();
         newPuzzle();
         locked = false;
-      }, 1000);
+      }, 1500);
       
     } else if(userSaysYes === false && hasWord === true){
       // Missed word - flash G, list GREEN
@@ -968,7 +970,7 @@ function handleAnswer(userSaysYes){
         updateScoreDisplay();
         newPuzzle();
         locked = false;
-      }, 1000);
+      }, 1500);
       
     } else {
       newPuzzle();
