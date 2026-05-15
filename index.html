@@ -122,8 +122,12 @@ font-size:20px;
   min-height:24px;
   transition:color 0.1s ease;
   font-family:'Courier New',Courier,monospace;
+  animation: blink 1s step-end infinite; 
 }
-
+@keyframes blink{  /* ADD THIS */
+  0%,100%{opacity:1}
+  50%{opacity:0}
+}
 #puzzleline.warning{
   color:#f66;
 }
@@ -427,7 +431,7 @@ font-family: 'Arial', sans-serif;
 </div>
 <div id="wrap">
 <div id="puzzlerow"></div>
-<div id="puzzleline"></div>
+<div id="puzzleline">_</div>
   <div id="gap"></div>
   <div id="answerrow"></div>
   <div id="answerblock"></div>
@@ -495,6 +499,7 @@ function updateHighScore(){
 }
 
 function renderPuzzle(){
+  puzzleEl.style.animation = 'none'; 
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
   puzzleEl.textContent = prefix + puzzle;
