@@ -142,6 +142,14 @@ font-size:20px;
 .waiting{
   animation: blinkAnswer 2.5s steps(1) infinite;
 }
+
+  @keyframes scoreFlash{
+  0%,100%{ background-color: #000; color: #fff; border-color: #fff; }
+  50%{ background-color: #6f6; color: #000; border-color: #6f6; }
+}
+.score-flash{
+  animation: scoreFlash 0.3s ease-in-out;
+}
 #puzzleline.warning{
   color:#f66;
 }
@@ -502,7 +510,9 @@ function updateScoreDisplay(){
   }
   updateHighScore(); 
 }
-
+scoreBox.addEventListener('animationend', function(){
+  scoreBox.classList.remove('score-flash');
+  });
 var highScore = 0;
 
 function updateHighScore(){
@@ -795,9 +805,11 @@ function handleAnswer(userSaysYes){
     // CORRECT ANSWER: +1 to score
     if(tabLevel > 0){
       tabLevel--;
+
     } else {
-      score++;
-    }
+  score++;
+}
+scoreBox.classList.add('score-flash');
     if(tabLevel === 0 && score < 0) score = 0;
     updateScoreDisplay();
       
