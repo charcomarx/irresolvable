@@ -145,11 +145,18 @@ font-size:20px;
 
 @keyframes scoreFlash{
   0%{ transform: scale(1); }
-  50%{ transform: scale(1.1); color: #6f6; border-color: #6f6; }
+  50%{ transform: scale(1.1); color: #6f6; border-color: #fff; }
   100%{ transform: scale(1); }
 }
 .score-flash{
   animation: scoreFlash 0.3s ease-in-out;
+}
+  @keyframes scoreBlink{
+  0%,100%{ color: #fff; border-color: #fff; }
+  50%{ color: #6f6; border-color: #6f6; text-shadow: 0 0 5px #6f6; }
+}
+.score-blinking{
+  animation: scoreBlink 1s ease-in-out infinite;
 }
 #puzzleline.warning{
   color:#f66;
@@ -502,12 +509,17 @@ function updateScoreDisplay(){
   if(score > 0){
     scoreBox.textContent = '' + score;
     scoreBox.className = 'positive';
+    scoreBox.classList.add('score-blinking');
   } else if(score < 0){
     scoreBox.textContent = '!';
     scoreBox.className = 'negative';
+    scoreBox.classList.remove('score-blinking');
   } else {
     scoreBox.textContent = '0';
     scoreBox.className = 'zero';
+    scoreBox.style.color = '#f66';        
+    scoreBox.style.borderColor = '#f66';
+    scoreBox.classList.remove('score-blinking');
   }
   updateHighScore(); 
 }
