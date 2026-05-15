@@ -808,7 +808,7 @@ if(correct){
     if(hasWord && flashedWord){
       addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
     } else {
-      addAnswer(puzzle, null, 'white');
+      addAnswer(puzzle, null, '#6f6');
     }
     puzzleEl.classList.remove('flashing');
     puzzleEl.style.color = '#fff';
@@ -864,7 +864,7 @@ if(correct){
       puzzleEl.style.color = '#6f6';
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
-        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#f66');
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
