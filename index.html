@@ -144,11 +144,11 @@ font-size:20px;
 }
   @keyframes blinkAnswer{
   0%,100%{ opacity: 1; }
-  75%{ opacity: 1; }
-  80%{ opacity: 0; }
+  60%{ opacity: 1; }
+  75%{ opacity: 0; }
 }
 .waiting{
-  animation: blinkAnswer 3s steps(1) infinite;
+  animation: blinkAnswer 4s steps(1) infinite;
 }
 
 
@@ -253,9 +253,13 @@ font-size:20px;
 }
 
 .flashing{
-  animation:flash .9s steps(1) forwards;
+  animation:flash 1.5 steps(1) forwards;
 }
 
+@keyframes flash{
+  0%,100%{opacity:1}
+  40%,60%{opacity:0}
+}
 /* Top controls: Score left, Y/N buttons right */
 
 #scorebox{
