@@ -820,10 +820,12 @@ function handleAnswer(userSaysYes){
     }, 1000);
       
   } else {
-    // INCORRECT ANSWER: score = 0
-    score = 0;
+    // INCORRECT ANSWER: Show "!" and flash red, then reset to 0
     tabLevel = 1;
-    updateScoreDisplay();
+    
+    // Show "!" in scorebox immediately
+    scoreBox.textContent = '!';
+    scoreBox.className = 'negative';
     
     renderPuzzle();
     locked = true;
@@ -851,6 +853,9 @@ function handleAnswer(userSaysYes){
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
         tabLevel = 0;
+        // Reset score to 0 AFTER list is added
+        score = 0;
+        updateScoreDisplay();
         newPuzzle();
         locked = false;
       }, 1000);
@@ -868,6 +873,9 @@ function handleAnswer(userSaysYes){
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
         tabLevel = 0;
+        // Reset score to 0 AFTER list is added
+        score = 0;
+        updateScoreDisplay();
         newPuzzle();
         locked = false;
       }, 1000);
