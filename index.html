@@ -649,6 +649,24 @@ function hasObviousCombo(pat) {
 
   return false;
 }
+function isPlausiblePattern(pattern){
+  // Check for illegal letter combinations using your existing function
+  if(hasObviousCombo(pattern)) return false;
+  
+  // Additional checks
+  var upper = pattern.toUpperCase();
+  
+  // No 3+ consecutive consonants
+  if(/[BCDFGHJKLMNPQRSTVWXYZ]{3,}/.test(upper)) return false;
+  
+  // No Q without U
+  if(/Q[^U]/.test(upper)) return false;
+  
+  // Should have at least one vowel
+  if(!/[AEIOU]/.test(upper)) return false;
+  
+  return true;
+}
   function generateImpossible(){
     for(var attempt = 0; attempt < 500; attempt++){
     var targetShort = Math.random() < 0.20;  // 
@@ -895,24 +913,29 @@ function handleAnswer(userSaysYes){
     renderPuzzle();
     locked = true;
     
-    if(userSaysYes === true && hasWord === false){
-      // False positive - flash RED with random letters
-      fapoNumber++;
-      document.getElementById('fapoNumber').textContent = fapoNumber;
-      
-      var filledPattern = puzzle;
-var existingLetters = filledPattern.split('');
-while(filledPattern.indexOf('_') !== -1){
-  var weightedLetter = getWeightedRandomLetter(existingLetters);
-  filledPattern = filledPattern.replace('_', weightedLetter);
-  // Update existing letters for next replacement
-  existingLetters = filledPattern.split('');
-}
-      var prefix = '';
-      for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-      puzzleEl.textContent = prefix + filledPattern;
-      puzzleEl.style.color = '#f66';  // RED FLASH
-      puzzleEl.classList.add('flashing');
+   if(userSaysYes === true && hasWord === false){
+  fapoNumber++;
+  document.getElementById('fapoNumber').textContent = fapoNumber;
+  
+  var filledPattern;
+  var attempts = 0;
+  var maxAttempts = 20;
+  
+  do {
+    filledPattern = puzzle;
+    var randomLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    while(filledPattern.indexOf('_') !== -1){
+      filledPattern = filledPattern.replace('_', randomLetters[Math.floor(Math.random() * randomLetters.length)]);
+    }
+    attempts++;
+    if(attempts >= maxAttempts) break;
+  } while(!isPlausiblePattern(filledPattern));
+  
+  var prefix = '';
+  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+  puzzleEl.textContent = prefix + filledPattern;
+  puzzleEl.style.color = '#f66';
+  puzzleEl.classList.add('flashing');
       setTimeout(function(){
         puzzleEl.classList.remove('strikethrough'); 
         addAnswer(puzzle, null, '#f66');  // RED LIST
