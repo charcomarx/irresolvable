@@ -72,6 +72,13 @@ html,body{
   color:#f66; 
   font-weight:bold;
   } 
+  @keyframes loadingOnce{
+  0%{ width: 0; }
+  100%{ width: 100%; }
+}
+.loading-once{
+  animation: loadingOnce 0.8s steps(13) forwards;
+}
   #tapHere{ 
     position:fixed; 
   top:530px; 
@@ -509,7 +516,7 @@ var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
 
-function updateScoreDisplay(){
+
  function updateScoreDisplay(){
   if(score > 0){
     scoreBox.textContent = '' + score;
@@ -1032,7 +1039,7 @@ var TWL_FALLBACK = [
 
 async function loadDict(){
   setStatus('loading Scrabble dictionary...');
-  
+  puzzleEl.classList.add('loading-once');
   var urls = [
     'https://raw.githubusercontent.com/danvk/hybrid-boggle/main/wordlists/sowpods.txt',
     'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt'
@@ -1060,7 +1067,14 @@ async function loadDict(){
     dict = TWL_FALLBACK;
     setStatus('✓ ' + dict.length + ' words | 70/30');
   }
-  
+    // Wait for 3 loops (0.8s * 3 = 2.4s) then start game
+  setTimeout(function(){
+    puzzleEl.classList.remove('loading-once');
+    puzzleEl.classList.add('typing');
+    updateScoreDisplay();
+    newPuzzle();
+  }, 2400);
+}
   updateScoreDisplay();
   newPuzzle();
 }
