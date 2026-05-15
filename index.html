@@ -554,6 +554,32 @@ function findAnswers(pattern){
   } catch(e){ return []; }
 }
 
+  function hasObviousCombo(pat) {
+  var blocked = {
+    'II':1,'UU':1,'KK':1,'XX':1,
+    'QA':1,'QB':1,'QC':1,'QD':1,'QE':1,'QF':1,'QG':1,'QH':1,
+    'QJ':1,'QK':1,'QL':1,'QM':1,'QN':1,'QO':1,'QP':1,'QQ':1,
+    'QR':1,'QS':1,'QT':1,'QV':1,'QW':1,'QX':1,'QY':1,'QZ':1,
+    'XQ':1,'ZX':1,'ZQ':1,'ZJ':1,
+    'BG':1,'BP':1,'BT':1,'BX':1,
+    'FP':1,'FX':1,'GX':1,'GZ':1,
+    'JB':1,'JD':1,'JF':1,'JG':1,'JH':1,'JK':1,'JL':1,'JM':1,
+    'JN':1,'JP':1,'JQ':1,'JR':1,'JS':1,'JT':1,'JV':1,'JW':1,
+    'JX':1,'JY':1,'JZ':1,
+    'KB':1,'KD':1,'KF':1,'KG':1,'KJ':1,'KM':1,'KP':1,'KQ':1,
+    'KT':1,'KV':1,'KX':1,'KZ':1,
+    'PF':1,'PX':1,
+    'VB':1,'VD':1,'VF':1,'VG':1,'VH':1,'VJ':1,'VK':1,'VL':1,
+    'VM':1,'VN':1,'VP':1,'VQ':1,'VR':1,'VS':1,'VT':1,'VW':1,
+    'VX':1,'VZ':1
+  };
+  for (var i = 0; i < pat.length - 1; i++) {
+    if (pat[i] === '_' || pat[i+1] === '_') continue;
+    var pair = pat[i] + pat[i+1];
+    if (blocked[pair]) return true;
+  }
+  return false;
+}
 // Generate IMPOSSIBLE puzzle - start with a non-word, then blank it
 function generateImpossible(){
   for(var attempt = 0; attempt < 500; attempt++){
@@ -564,7 +590,7 @@ function generateImpossible(){
     var chars = template.split('');
     
     // Aggressively change 50% of the letters (minimum 2, maximum 4)
-    var changeCount = Math.max(2, Math.floor(chars.length / 2));
+    var changeCount = chars.length <= 3 ? 1 : Math.max(2, Math.floor(chars.length / 2));
     changeCount = Math.min(changeCount, 4);
     
     for(var c = 0; c < changeCount; c++){
