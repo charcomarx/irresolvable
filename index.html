@@ -767,6 +767,7 @@ function newPuzzle(){
 }
 
   function handleAnswer(userSaysYes){
+     if(dict.length === 0) return; 
   var hasWord = answers.length > 0;
   var correct = (userSaysYes === hasWord);
   var flashedWord = null;
