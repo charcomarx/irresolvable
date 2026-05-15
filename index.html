@@ -351,7 +351,7 @@ font-family: 'Arial', sans-serif;
   }
   #tapHere{
     top:530px; 
-    right:55px; 
+    right:50px; 
   }
   #fapoLabel{
   top:110px;
@@ -453,7 +453,7 @@ var locked   = false;
 // Mobile detection for tabs
 var isMobile = window.innerWidth <= 600;
 var MAX_TABS = isMobile ? 1 : 1;
-var TAB_SP   = isMobile ? 2 : 4;
+var TAB_SP   = isMobile ? 1 : 4;
 
 var answerHistory = [];
 var recentPuzzles = [];
@@ -767,62 +767,57 @@ function handleAnswer(userSaysYes){
   var correct = (userSaysYes === hasWord);
   var flashedWord = null;
   
-  var answerColor;
-  if(correct){
-    answerColor = 'white';
-  } else {
-    answerColor = userSaysYes ? '#f66' : '#6f6';
-  }
-  
+  // STORE the word but DON'T add to list yet
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
-    addAnswer(chosen.toUpperCase(), 'https://en.wiktionary.org/wiki/' + chosen.toLowerCase(), answerColor);
     flashedWord = chosen;
   } else {
-    addAnswer(puzzle, null, answerColor);
     if(userSaysYes === true && hasWord === false){
       fapoNumber++;
       document.getElementById('fapoNumber').textContent = fapoNumber;
     }
   }
-
-
+  
   if(correct){
-  if(tabLevel > 0){
-    tabLevel--;
-    if(tabLevel === 0) score = 0;
-  } else {
-    score++;
-  }
-  updateScoreDisplay();
-  
-  // FORCE to tab position 1
-  tabLevel = 1;
-  
-  // Show the filled word with tab spacing
-  var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
-  var prefix = '';
-  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  puzzleEl.textContent = prefix + filledWord;
-  
-  locked = true;
-  puzzleEl.style.color = '#fff';
-  puzzleEl.classList.add('flashing');
-  setTimeout(function(){
-    puzzleEl.classList.remove('flashing');
+    // CORRECT ANSWER
+    if(tabLevel > 0){
+      tabLevel--;
+      if(tabLevel === 0) score = 0;
+    } else {
+      score++;
+    }
+    updateScoreDisplay();
+    
+    tabLevel = 1;
+    
+    var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
+    var prefix = '';
+    for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+    puzzleEl.textContent = prefix + filledWord;
+    
+    locked = true;
     puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    // Reset to left after flash
-    tabLevel = 0;
-    newPuzzle();
-    locked = false;
-  }, 1000);
+    puzzleEl.classList.add('flashing');
+    setTimeout(function(){
+      // ADD ANSWER AFTER FLASH
+      if(hasWord && flashedWord){
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
       } else {
-    // INCORRECT ANSWER - always go to tab 1, reset score
+        addAnswer(puzzle, null, 'white');
+      }
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      tabLevel = 0;
+      newPuzzle();
+      locked = false;
+    }, 1000);
+    
+  } else {
+    // INCORRECT ANSWER
     score = -1;
     tabLevel = 1;
     
-    // Show tab shift
     renderPuzzle();
     
     locked = true;
@@ -831,10 +826,11 @@ function handleAnswer(userSaysYes){
       puzzleEl.style.color = '#f66';
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
+        // ADD ANSWER AFTER FLASH
+        addAnswer(puzzle, null, '#f66');
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
-        // Reset to left after flash
         tabLevel = 0;
         score = 0;
         newPuzzle();
@@ -848,10 +844,11 @@ function handleAnswer(userSaysYes){
       puzzleEl.style.color = '#6f6';
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
+        // ADD ANSWER AFTER FLASH
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
         puzzleEl.classList.remove('flashing');
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
-        // Reset to left after flash
         tabLevel = 0;
         score = 0;
         newPuzzle();
@@ -861,7 +858,6 @@ function handleAnswer(userSaysYes){
       newPuzzle();
     }
   }
-  updateScoreDisplay();
 }
 // Keyboard input
 document.addEventListener('keydown', function(e){
