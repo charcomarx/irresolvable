@@ -1039,7 +1039,11 @@ var TWL_FALLBACK = [
 
 async function loadDict(){
   setStatus('loading Scrabble dictionary...');
+  
+  // Remove typing class and add loading animation
+  puzzleEl.classList.remove('typing');
   puzzleEl.classList.add('loading-once');
+  
   var urls = [
     'https://raw.githubusercontent.com/danvk/hybrid-boggle/main/wordlists/sowpods.txt',
     'https://raw.githubusercontent.com/jesstess/Scrabble/master/TWL.txt'
@@ -1067,16 +1071,14 @@ async function loadDict(){
     dict = TWL_FALLBACK;
     setStatus('✓ ' + dict.length + ' words | 70/30');
   }
-    // Wait for 3 loops (0.8s * 3 = 2.4s) then start game
+  
+  // Wait for animation to finish then start game
   setTimeout(function(){
     puzzleEl.classList.remove('loading-once');
     puzzleEl.classList.add('typing');
     updateScoreDisplay();
     newPuzzle();
   }, 2400);
-}
-  updateScoreDisplay();
-  newPuzzle();
 }
 
 loadMessages();
