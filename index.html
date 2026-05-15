@@ -137,7 +137,8 @@ font-size:20px;
 }
   @keyframes blinkAnswer{
   0%,100%{ opacity: 1; }
-  50%{ opacity: 0; }
+  90%{ opacity: 1; }
+  95%{ opacity: 0; }
 }
 .waiting{
   animation: blinkAnswer 2.5s steps(1) infinite;
@@ -152,11 +153,14 @@ font-size:20px;
   animation: scoreFlash 0.3s ease-in-out;
 }
   @keyframes scoreBlink{
-  0%,100%{ color: #fff; border-color: #fff; }
-  50%{ color: #6f6; border-color: #6f6; text-shadow: 0 0 5px #6f6; }
+  0%,100%{ color: #fff; border-color: #000; }
+  50%{ color: #6f6; border-color: #6f6;}
+    0%,100%{ opacity: 1; }
+  90%{ opacity: 1; }
+  95%{ opacity: 0; }
 }
 .score-blinking{
-  animation: scoreBlink 1s ease-in-out infinite;
+  animation: scoreBlink 1s 1.25s steps(1) infinite;
 }
 #puzzleline.warning{
   color:#f66;
