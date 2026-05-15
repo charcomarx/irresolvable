@@ -607,23 +607,24 @@ function hasObviousCombo(pat) {
 
   return false;
 }
-
 function generateImpossible(){
-  for(var attempt = 0; attempt < 500; attempt++){
+  var targetShort = Math.random() < 0.35;
 
+  for(var attempt = 0; attempt < 500; attempt++){
     var template;
-    if(attempt < 150){
-      var shortWords = dict.filter(function(w){ return w.length >= 3 && w.length <= 4; });
-      template = shortWords[Math.floor(Math.random() * shortWords.length)];
+    if(targetShort){
+      var pool = dict.filter(function(w){ return w.length >= 3 && w.length <= 4; });
+      template = pool[Math.floor(Math.random() * pool.length)];
     } else {
-      template = dict[Math.floor(Math.random() * dict.length)];
+      var pool = dict.filter(function(w){ return w.length >= 5 && w.length <= 10; });
+      template = pool[Math.floor(Math.random() * pool.length)];
     }
     if(!template || template.length < 3) continue;
 
     var chars = template.split('');
     var changeCount = chars.length <= 3 ? 1 : Math.max(2, Math.floor(chars.length / 2));
     changeCount = Math.min(changeCount, 4);
-
+    
     for(var c = 0; c < changeCount; c++){
       var pos = Math.floor(Math.random() * chars.length);
       var originalChar = chars[pos];
