@@ -150,15 +150,6 @@ font-size:20px;
 .waiting{
   animation: blinkAnswer 5s steps(1) infinite;
 }
-@keyframes scoreFlash{
-  0%{ transform: scale(1); background-color: #000; }
-  40%{ transform: scale(1.6); background-color: #fff; }
-  60%{ transform: scale(1.6); background-color: #fff; }
-  100%{ transform: scale(1); background-color: #000; }
-}
-.score-flash{
-  animation: scoreFlash 0.4s steps(1);
-}
 #puzzleline.warning{
   color:#f66;
 }
@@ -265,7 +256,7 @@ font-size:20px;
   background:#000;
   border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
-  font-size:76px;
+  font-size:86px;
   font-weight:900;
   width:100px;
   height:110px;
@@ -525,7 +516,6 @@ function updateScoreDisplay(){
   updateHighScore(); 
 }
 scoreBox.addEventListener('animationend', function(){
-  scoreBox.classList.remove('score-flash');
   });
 var highScore = 0;
 
@@ -896,7 +886,6 @@ function handleAnswer(userSaysYes){
 
     if(tabLevel === 0 && score < 0) score = 0;
     updateScoreDisplay();
-      scoreBox.classList.add('score-flash');
     var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
     var prefix = '';
     for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
