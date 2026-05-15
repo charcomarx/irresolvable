@@ -810,10 +810,10 @@ function handleAnswer(userSaysYes){
     } else {
   score++;
 }
-scoreBox.classList.add('score-flash');
+
     if(tabLevel === 0 && score < 0) score = 0;
     updateScoreDisplay();
-      
+      scoreBox.classList.add('score-flash');
     var filledWord = (hasWord && flashedWord) ? flashedWord.toUpperCase() : puzzle;
     var prefix = '';
     for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
