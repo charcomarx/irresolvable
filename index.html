@@ -975,7 +975,7 @@ else if(userSaysYes === false && hasWord === true){
       // Missed word - flash G, list GREEN
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-      puzzleEl.textContent = prefix + flashedWord.toUpperCase();
+      puzzleEl.textContent = prefix + flashedWord.toUpperCase() + '!';
       puzzleEl.style.color = '#6f6';  // G FLASH
       puzzleEl.classList.add('flashing');
       setTimeout(function(){
