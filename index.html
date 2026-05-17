@@ -238,6 +238,21 @@ font-size:20px;
   z-index:999;
   cursor: pointer; 
 }
+  body.gameover #instruction2 {
+  visibility: hidden;
+  position: relative;
+}
+
+body.gameover #instruction2::after {
+  content: "Y_U K_NOT TH_ W_OR_DS\A G A M E   O V E R\A TAP or PRESS\A A N Y   K E Y\A to RESTART";
+  visibility: visible;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: #f66;
+  white-space: pre;
+  text-align: right;
+}
 /* Slide left for white words (correct answers) */
 @keyframes slideLeft{
   0%{ transform: translateX(0); }
@@ -543,10 +558,7 @@ body.gameover #tapHere {
 
 </div>
   <div id="status" style="display:none;"></div>
-  <div id="gameover">
-  <div id="gotext">Y_U K_NOT TH_ W_OR_DS<br><br><span style="color:#fff;">GAME OVER</span><br><br>* TAP OR PRESS ANY KEY TO RESTART *</div>
-</div>
-
+  
 <!-- Message box at bottom - FIXED POSITION -->
 <div id="messagebox">
   <br><span style="font-size:14px;"> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? <span style="color:#6f6; font-size:14">Click on <span style="text-decoration:underline;">TRUE WORDS</span> for Wiktionary definitions.</span></span><span style="color:#fff;"></span> Powered by SOWPODS/Collins Scrabble Words @<a href="https://github.com/danvk/hybrid-boggle/blob/main/wordlists/README.md" target="_blank" style="color:#f66; text-decoration:underline;"> Hybrid Boggle Wordlists</a>. Notes <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
@@ -614,26 +626,10 @@ var gapEl      = document.getElementById('gap');
 var answerRowEl= document.getElementById('answerrow');
 var answerEl   = document.getElementById('answerblock');
 var statusEl   = document.getElementById('status');
-var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
 var highScore = 0;
 
-gameoverEl.addEventListener('click', function(){
-  forceCleanup();
-  gameoverEl.style.display = 'none';
-  document.body.classList.remove('gameover');
-  score = 0;
-  fapoNumber = 0;
-  highScore = 0;
-  answerHistory = [];
-  recentPuzzles = [];
-  document.getElementById('fapoNumber').textContent = '0';
-  document.getElementById('highscoreNumber').textContent = '0';
-  updateScoreDisplay();
-  renderAnswers();
-  newPuzzle();
-});
 
 function updateScoreDisplay(){
   if(score > 0){
@@ -1115,7 +1111,7 @@ function handleAnswer(userSaysYes){
           updateScoreDisplay();
           
           if(fapoNumber >= 5 && fapoNumber > highScore){
-            gameoverEl.style.display = 'flex';
+            document.body.classList.add('gameover'); 
             document.body.classList.add('gameover');
             setLocked(true);
             return;
@@ -1157,10 +1153,9 @@ function handleAnswer(userSaysYes){
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
   
-  if(gameoverEl.style.display === 'flex'){
+  if(document.body.classList.contains('gameover')){  // NEW
     e.preventDefault();
     forceCleanup();
-    gameoverEl.style.display = 'none';
     document.body.classList.remove('gameover');
     score = 0;
     fapoNumber = 0;
