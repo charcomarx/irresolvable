@@ -259,7 +259,7 @@ font-size:20px;
 
 /* WHAT THE... slide right with word */
 #whatThe.slide-right{
-  animation: slideRight 0.4s ease-out forwards;
+  animation: slideRight 0.05s ease-out forwards;
 }
 #gotext{
   color:#6f6;
@@ -981,7 +981,7 @@ function handleAnswer(userSaysYes){
     locked = false;
   }, 800); // Match animation duration
   
-}, 1000);
+}, 800);
       
   } else {
     
@@ -1061,7 +1061,7 @@ if(userSaysYes === true && hasWord === false){
       newPuzzle();
       locked = false;
     }, 800);
-  }, 1000);
+  }, 800);
 }
   
 else if(userSaysYes === false && hasWord === true){
@@ -1091,7 +1091,7 @@ else if(userSaysYes === false && hasWord === true){
     locked = false;
   }, 800); // Match animation duration
   
-}, 1000);
+}, 800);
       
     } else {
       newPuzzle();
