@@ -541,7 +541,6 @@ body.gameover #tapHere {
 <div id="messagebox">
   <br><span style="font-size:14px;"> <a href="https://en.wiktionary.org/wiki/bozoid" target="_blank" style="color:#fff; text-decoration:underline;"> BOZOIDS</a>? <span style="color:#6f6; font-size:14">Click on <span style="text-decoration:underline;">TRUE WORDS</span> for Wiktionary definitions.</span></span><span style="color:#fff;"></span> Powered by SOWPODS/Collins Scrabble Words @<a href="https://github.com/danvk/hybrid-boggle/blob/main/wordlists/README.md" target="_blank" style="color:#f66; text-decoration:underline;"> Hybrid Boggle Wordlists</a>. Notes <span style="color:#fff;"></span> <a href="https://github.com/charcomarx" target="_blank" style="color:#fff; text-decoration:underline;">@ GitHub.</a><br>
 </div>
-
 <script>
 var dict = [];
 var puzzle = '', answers = [];
@@ -562,31 +561,6 @@ var recentPuzzles = [];
 // Track active timeouts to prevent memory leaks
 var activeTimeouts = [];
 
-function forceCleanup() {
-  // Remove all "WHAT THE..." elements
-  var allWhatThe = document.querySelectorAll('#whatThe');
-  for(var i = 0; i < allWhatThe.length; i++) {
-    if(allWhatThe[i] && allWhatThe[i].remove) allWhatThe[i].remove();
-  }
-  
-  // Remove all animation classes from puzzle
-  puzzleEl.classList.remove('slide-left', 'slide-right', 'flashing', 'waiting', 'warning', 'strikethrough');
-  
-  // Force unlock if stuck
-  locked = false;
-  
-  // Clear all timeouts
-  clearAllTimeouts();
-}
-  function newPuzzle(){
-  forceCleanup(); // ADD THIS LINE
-  
-  if(dict.length === 0){
-    setTimeout(newPuzzle, 100);
-    return;
-  }
-  // ... rest of your code
-}
 function safeTimeout(fn, delay) {
   var id = setTimeout(function() {
     fn();
@@ -604,7 +578,16 @@ function clearAllTimeouts() {
   activeTimeouts = [];
 }
 
-// FIX 1: Watchdog — if locked stays true for more than 3s, force-unlock
+function forceCleanup() {
+  var allWhatThe = document.querySelectorAll('#whatThe');
+  for(var i = 0; i < allWhatThe.length; i++) {
+    if(allWhatThe[i] && allWhatThe[i].remove) allWhatThe[i].remove();
+  }
+  puzzleEl.classList.remove('slide-left', 'slide-right', 'flashing', 'waiting', 'warning', 'strikethrough');
+  locked = false;
+  clearAllTimeouts();
+}
+
 var lockWatchdog = null;
 function setLocked(val) {
   locked = val;
@@ -624,9 +607,10 @@ var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
-// Add this to reset the game when clicking on game over screen
-  gameoverEl.addEventListener('click', function(){
-  forceCleanup(); // ADD THIS LINE
+var highScore = 0;
+
+gameoverEl.addEventListener('click', function(){
+  forceCleanup();
   gameoverEl.style.display = 'none';
   document.body.classList.remove('gameover');
   score = 0;
@@ -654,17 +638,15 @@ function updateScoreDisplay(){
   }
   updateHighScore(); 
 }
-scoreBox.addEventListener('animationend', function(){
-  });
-var highScore = 0;
 
 function updateHighScore(){
   if(score > highScore){
     highScore = score;
     document.getElementById('highscoreNumber').textContent = highScore;
   }
-  
-}function renderPuzzle(){
+}
+
+function renderPuzzle(){
   puzzleEl.classList.remove('typing');
   puzzleEl.style.borderRight = 'none';
   var prefix = '';
@@ -678,27 +660,25 @@ function updateHighScore(){
   }
   puzzleEl.classList.add('waiting');
 }
-  
-    function addAnswer(text, link, color){
+
+function addAnswer(text, link, color){
   answerHistory.unshift({text: text, link: link || null, color: color});
-  
-  // Limit history to 20 items on mobile, 50 on desktop
   var maxHistory = isMobile ? 20 : 50;
   while(answerHistory.length > maxHistory) {
     answerHistory.pop();
   }
-  
   renderAnswers();
-} 
+}
+
 function renderAnswers(){
   answerEl.innerHTML = '';
   for(var i = 0; i < answerHistory.length; i++){
     var entry = answerHistory[i];
     var d = document.createElement('div');
-  d.className = 'aline';
-  if(!entry.link){
-  d.style.textDecoration = 'line-through';
-  }  
+    d.className = 'aline';
+    if(!entry.link){
+      d.style.textDecoration = 'line-through';
+    }  
     d.style.color = entry.color;
     if(entry.link){
       var a = document.createElement('a');
@@ -725,17 +705,19 @@ function shuffle(arr){
   }
   return arr;
 }
+
 function getBlankCount(wordLength){
   if(wordLength <= 3){
-    return 1; // Only 1 blank possible (can't have 0)
+    return 1;
   } else if(wordLength <= 5){
-    return 1 + Math.floor(Math.random() * 2); // 1-2 blanks
+    return 1 + Math.floor(Math.random() * 2);
   } else if(wordLength <= 7){
-    return 2 + Math.floor(Math.random() * 2); // 2-3 blanks (never 1 blank)
+    return 2 + Math.floor(Math.random() * 2);
   } else {
-    return 3 + Math.floor(Math.random() * 2); // 3-4 blanks
+    return 3 + Math.floor(Math.random() * 2);
   }
 }
+
 function findAnswers(pattern){
   try{
     var re = new RegExp('^' + pattern.toLowerCase().replace(/_/g,'[a-z]') + '$');
@@ -746,6 +728,7 @@ function findAnswers(pattern){
     return matches;
   } catch(e){ return []; }
 }
+
 function hasObviousCombo(pat) {
   var blockedAnywhere = {
     'II':1,'UU':1,'KK':1,'XX':1,'AA':1,
@@ -799,27 +782,19 @@ function hasObviousCombo(pat) {
 
   return false;
 }
+
 function isPlausiblePattern(pattern){
-  // Check for illegal letter combinations using your existing function
   if(hasObviousCombo(pattern)) return false;
-  
-  // Additional checks
   var upper = pattern.toUpperCase();
-  
-  // No 3+ consecutive consonants
   if(/[BCDFGHJKLMNPQRSTVWXYZ]{3,}/.test(upper)) return false;
-  
-  // No Q without U
   if(/Q[^U]/.test(upper)) return false;
-  
-  // Should have at least one vowel
   if(!/[AEIOU]/.test(upper)) return false;
-  
   return true;
 }
-  function generateImpossible(){
-    for(var attempt = 0; attempt < 500; attempt++){
-    var targetShort = Math.random() < 0.20;  // 
+
+function generateImpossible(){
+  for(var attempt = 0; attempt < 500; attempt++){
+    var targetShort = Math.random() < 0.20;
     var template;
     if(targetShort){
       var pool = dict.filter(function(w){ return w.length >= 3 && w.length <= 4; });
@@ -854,8 +829,8 @@ function isPlausiblePattern(pattern){
 
     var nonWord = chars.join('');
     if(findAnswers(nonWord).length > 0) continue;
-var blankCount = getBlankCount(nonWord.length);
-blankCount = Math.min(blankCount, nonWord.length - 2);
+    var blankCount = getBlankCount(nonWord.length);
+    blankCount = Math.min(blankCount, nonWord.length - 2);
     var positions = [];
     for(var i = 0; i < nonWord.length; i++) positions.push(i);
     positions = shuffle(positions).slice(0, blankCount);
@@ -871,7 +846,6 @@ blankCount = Math.min(blankCount, nonWord.length - 2);
     return pattern;
   }
 
-  // fallback
   var letters = 'BCDFGHKLMNPQRSTVWXYZ';
   var vowelsF = 'AEIOU';
   var fallback = '';
@@ -883,7 +857,7 @@ blankCount = Math.min(blankCount, nonWord.length - 2);
   }
   return fallback;
 }
-// Generate SOLVABLE puzzle - returns patterns with 1-4 dictionary matches
+
 function generateSolvable(){
   for(var attempt = 0; attempt < 300; attempt++){
     var useShort = Math.random() < 0.20;
@@ -903,7 +877,7 @@ function generateSolvable(){
     if(!word) continue;
   
     var blankCount = getBlankCount(word.length);
-blankCount = Math.min(blankCount, word.length - 2);
+    blankCount = Math.min(blankCount, word.length - 2);
     
     var chars = word.split('');
     var positions = [];
@@ -929,9 +903,15 @@ blankCount = Math.min(blankCount, word.length - 2);
   ];
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
- clearAllTimeouts(); 
 
-  // FIX 2: Always unlock when a new puzzle is ready
+function newPuzzle(){
+  forceCleanup();
+  
+  if(dict.length === 0){
+    setTimeout(newPuzzle, 100);
+    return;
+  }
+
   setLocked(false);
   
   var isImpossible = Math.random() < 0.33;
@@ -955,7 +935,6 @@ blankCount = Math.min(blankCount, word.length - 2);
     }
   }
   
-  // Prevent exact repeats
   if(recentPuzzles.includes(puzzle)){
     newPuzzle();
     return;
@@ -965,12 +944,12 @@ blankCount = Math.min(blankCount, word.length - 2);
   
   renderPuzzle();
 }
-  function getWeightedRandomLetter(existingLetters){
+
+function getWeightedRandomLetter(existingLetters){
   var vowels = 'AEIOU';
   var commonConsonants = 'RSTLN';
   var otherConsonants = 'BCDFGHJKMPQWXYZ';
   
-  // Count existing letters
   var vowelCount = 0;
   var consonantCount = 0;
   var commonCount = 0;
@@ -986,7 +965,6 @@ blankCount = Math.min(blankCount, word.length - 2);
     }
   }
   
-  // Prefer vowels if many consonants, prefer common consonants if many vowels
   var preferVowel = consonantCount > vowelCount + 1;
   var preferCommon = vowelCount > consonantCount;
   
@@ -998,7 +976,6 @@ blankCount = Math.min(blankCount, word.length - 2);
   } else if(preferCommon){
     letters = commonConsonants;
   } else {
-    // Mix based on probability
     if(rand < 0.4) letters = vowels;
     else if(rand < 0.7) letters = commonConsonants;
     else letters = otherConsonants;
@@ -1014,20 +991,17 @@ function handleAnswer(userSaysYes){
   var correct = (userSaysYes === hasWord);
   var flashedWord = null;
   
-  // STORE the word but DON'T add to list yet
   if(hasWord){
     var chosen = answers[Math.floor(Math.random() * answers.length)];
     flashedWord = chosen;
   }
 
   if(correct){
-    // CORRECT ANSWER: +1 to score
     if(tabLevel > 0){
       tabLevel--;
-
     } else {
-  score++;
-}
+      score++;
+    }
 
     if(tabLevel === 0 && score < 0) score = 0;
     updateScoreDisplay();
@@ -1044,7 +1018,6 @@ function handleAnswer(userSaysYes){
     puzzleEl.style.color = '#fff';
     puzzleEl.classList.add('flashing');
     
-    // FIX 3: Use safeTimeout for all nested setTimeout calls
     safeTimeout(function(){
       if(hasWord && flashedWord){
         addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
@@ -1063,138 +1036,120 @@ function handleAnswer(userSaysYes){
           puzzleEl.classList.remove('strikethrough');
         }
         newPuzzle();
-        // newPuzzle() calls setLocked(false) — no need to repeat here
       }, 800);
-      
     }, 800);
       
   } else {
     
-    // Show "!" in scorebox immediately
     scoreBox.textContent = '!';
     scoreBox.className = 'negative';
     
     renderPuzzle();
     setLocked(true);
 
+    if(userSaysYes === true && hasWord === false){
+      fapoNumber++;
+      document.getElementById('fapoNumber').textContent = fapoNumber;
 
-  if(userSaysYes === true && hasWord === false){
-  fapoNumber++;
-  document.getElementById('fapoNumber').textContent = fapoNumber;
-
-  var filledPattern;
-  var attempts = 0;
-  var maxAttempts = 10;
-  
-  do {
-    filledPattern = puzzle;
-    var existingChars = filledPattern.split('');
-    while(filledPattern.indexOf('_') !== -1){
-      var weightedLetter = getWeightedRandomLetter(existingChars);
-      filledPattern = filledPattern.replace('_', weightedLetter);
-      existingChars = filledPattern.split('');
+      var filledPattern;
+      var attempts = 0;
+      var maxAttempts = 10;
+      
+      do {
+        filledPattern = puzzle;
+        var existingChars = filledPattern.split('');
+        while(filledPattern.indexOf('_') !== -1){
+          var weightedLetter = getWeightedRandomLetter(existingChars);
+          filledPattern = filledPattern.replace('_', weightedLetter);
+          existingChars = filledPattern.split('');
+        }
+        attempts++;
+        if(attempts >= maxAttempts) break;
+      } while(!isPlausiblePattern(filledPattern));
+      
+      var prefix = '';
+      for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
+      
+      var displayText = prefix + filledPattern + '?';
+      puzzleEl.textContent = displayText;
+      puzzleEl.style.color = '#f66';
+      puzzleEl.classList.add('flashing');
+      
+      var whatThe = document.createElement('div');
+      whatThe.id = 'whatThe';
+      whatThe.textContent = 'WHAT THE';
+      whatThe.style.position = 'fixed';
+      whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 5) + 'px';
+      whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
+      whatThe.style.fontSize = '15px';
+      whatThe.style.color = '#f66';
+      whatThe.style.whiteSpace = 'nowrap';
+      whatThe.style.pointerEvents = 'none';
+      whatThe.style.zIndex = '200';
+      document.body.appendChild(whatThe);
+      
+      safeTimeout(function(){
+        puzzleEl.classList.remove('flashing');
+        puzzleEl.classList.add('slide-right');
+        if(whatThe) whatThe.classList.add('slide-right');
+        
+        safeTimeout(function(){
+          if(whatThe && whatThe.remove) whatThe.remove();
+          puzzleEl.classList.remove('strikethrough');
+          puzzleEl.classList.remove('slide-right');
+          puzzleEl.style.color = '#fff';
+          puzzleEl.textContent = '';
+          addAnswer(puzzle, null, '#f66');
+          tabLevel = 0;
+          score = 0;
+          updateScoreDisplay();
+          
+          if(fapoNumber >= 5 && fapoNumber > highScore){
+            gameoverEl.style.display = 'flex';
+            document.body.classList.add('gameover');
+            setLocked(true);
+            return;
+          }
+          
+          newPuzzle();
+        }, 800);
+      }, 800);
     }
-    attempts++;
-    if(attempts >= maxAttempts) break;
-  } while(!isPlausiblePattern(filledPattern));
-  
-  var prefix = '';
-  for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  
-  // Store the text we want to animate
-  var displayText = prefix + filledPattern + '?';
-  puzzleEl.textContent = displayText;
-  puzzleEl.style.color = '#f66';
-  puzzleEl.classList.add('flashing');
-  
-  // Create "WHAT THE..." text
-var whatThe = document.createElement('div');
-whatThe.id = 'whatThe';
-whatThe.textContent = 'WHAT THE';
-whatThe.style.position = 'fixed';
-whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 5) + 'px';
-whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
-whatThe.style.fontSize = '15px';
-whatThe.style.color = '#f66';
-whatThe.style.whiteSpace = 'nowrap';
-whatThe.style.pointerEvents = 'none';
-whatThe.style.zIndex = '200';
-document.body.appendChild(whatThe);
-
-
-    
-  // FIX 3 (continued): Use safeTimeout here too
-  safeTimeout(function(){
-    puzzleEl.classList.remove('flashing');
-    puzzleEl.classList.add('slide-right');
-    if(whatThe) whatThe.classList.add('slide-right');
-    
-    safeTimeout(function(){
-if(whatThe && whatThe.remove) whatThe.remove();
-
-      puzzleEl.classList.remove('strikethrough');
-      puzzleEl.classList.remove('slide-right');
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      addAnswer(puzzle, null, '#f66');
-      tabLevel = 0;
-      score = 0;
-      updateScoreDisplay();
-      
-      if(fapoNumber >= 5 && fapoNumber > highScore){
-        gameoverEl.style.display = 'flex';
-        document.body.classList.add('gameover');
-        setLocked(true);
-        return;
-      }
-      
-      newPuzzle();
-      // newPuzzle() calls setLocked(false)
-    }, 800);
-  }, 800);
-
-}
-  
-else if(userSaysYes === false && hasWord === true){
-      // Missed word - flash G, list GREEN
+    else if(userSaysYes === false && hasWord === true){
       var prefix = '';
       for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
       puzzleEl.textContent = prefix + flashedWord.toUpperCase() + '!';
-      puzzleEl.style.color = '#6f6';  // G FLASH
+      puzzleEl.style.color = '#6f6';
       puzzleEl.classList.add('flashing');
       
-  // FIX 3 (continued): Use safeTimeout here too
-  safeTimeout(function(){
-    addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
-    
-    puzzleEl.classList.remove('flashing');
-    puzzleEl.classList.add('slide-right');
-    
-    safeTimeout(function(){
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      puzzleEl.classList.remove('slide-right');
-      tabLevel = 0;
-      score = 0;
-      updateScoreDisplay();
-      newPuzzle();
-      // newPuzzle() calls setLocked(false)
-    }, 800);
-    
-  }, 800);
-      
+      safeTimeout(function(){
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
+        
+        puzzleEl.classList.remove('flashing');
+        puzzleEl.classList.add('slide-right');
+        
+        safeTimeout(function(){
+          puzzleEl.style.color = '#fff';
+          puzzleEl.textContent = '';
+          puzzleEl.classList.remove('slide-right');
+          tabLevel = 0;
+          score = 0;
+          updateScoreDisplay();
+          newPuzzle();
+        }, 800);
+      }, 800);
     } else {
       newPuzzle();
     }
   }
 }
-// Keyboard input
+
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
   
-  // If game over is showing, ANY key restarts
   if(gameoverEl.style.display === 'flex'){
     e.preventDefault();
+    forceCleanup();
     gameoverEl.style.display = 'none';
     document.body.classList.remove('gameover');
     score = 0;
@@ -1206,12 +1161,10 @@ document.addEventListener('keydown', function(e){
     document.getElementById('highscoreNumber').textContent = '0';
     updateScoreDisplay();
     renderAnswers();
-    setLocked(false);
     newPuzzle();
     return;
   }
   
-  // Normal gameplay - only Y/N keys work
   if(k !== 'Y' && k !== 'N') return;
   
   if(document.activeElement && document.activeElement.id === 'noteInput') return;
@@ -1222,7 +1175,6 @@ document.addEventListener('keydown', function(e){
   handleAnswer(k === 'Y');
 }, true);
 
-// FIX 4: Separate debounce per button
 var lastPressY = 0, lastPressN = 0;
 
 document.getElementById('btnY').addEventListener('click', function(){
@@ -1243,7 +1195,6 @@ window.addEventListener('resize', function(){
   renderAnswers();
 });
 
-// Message box functionality
 var messages = [];
 
 function loadMessages(){
@@ -1286,7 +1237,6 @@ function addMessage(text){
   renderMessages();
 }
 
-// Message box event listeners
 var submitBtn = document.getElementById('submitNote');
 var noteInput = document.getElementById('noteInput');
 
@@ -1319,10 +1269,10 @@ var TWL_FALLBACK = [
   'brain','train','grain','drain','plain','main','pain','rain','vain','chain',
   'drive','strive','thrive','alive','hive','dive','live','place','space','grace'
 ];
-  async function loadDict(){
+
+async function loadDict(){
   setStatus('loading Scrabble dictionary...');
   
-  // Start loading animation
   puzzleEl.classList.remove('typing');
   puzzleEl.classList.add('loading-once');
   
@@ -1354,7 +1304,6 @@ var TWL_FALLBACK = [
     setStatus('✓ ' + dict.length + ' words | 70/30');
   }
   
-  // Start game immediately when dictionary is ready
   puzzleEl.classList.remove('loading-once');
   puzzleEl.classList.add('typing');
   updateScoreDisplay();
@@ -1363,6 +1312,7 @@ var TWL_FALLBACK = [
 
 loadMessages();
 loadDict();
+
 </script>
   
 </body>
