@@ -578,6 +578,17 @@ function clearAllTimeouts() {
   }
   activeTimeouts = [];
 }
+
+// FIX 1: Watchdog — if locked stays true for more than 3s, force-unlock
+var lockWatchdog = null;
+function setLocked(val) {
+  locked = val;
+  clearTimeout(lockWatchdog);
+  if(val) {
+    lockWatchdog = setTimeout(function(){ locked = false; }, 3000);
+  }
+}
+
 var titleEl    = document.getElementById('title');
 var puzzleRowEl= document.getElementById('puzzlerow');
 var puzzleEl   = document.getElementById('puzzleline');
@@ -602,7 +613,7 @@ gameoverEl.addEventListener('click', function(){
   document.getElementById('highscoreNumber').textContent = '0';
   updateScoreDisplay();
   renderAnswers();
-  locked = false;
+  setLocked(false);
   newPuzzle();
 });
 
@@ -900,6 +911,9 @@ function newPuzzle(){
     setTimeout(newPuzzle, 100);
     return;
   }
+
+  // FIX 2: Always unlock when a new puzzle is ready
+  setLocked(false);
   
   var isImpossible = Math.random() < 0.33;
   
@@ -1007,34 +1021,33 @@ function handleAnswer(userSaysYes){
       puzzleEl.classList.add('strikethrough');
     }
     
-    locked = true;
+    setLocked(true);
     puzzleEl.style.color = '#fff';
     puzzleEl.classList.add('flashing');
     
-    setTimeout(function(){
-  if(hasWord && flashedWord){
-    addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
-  } else {
-    addAnswer(puzzle, null, 'white');
-  }
-  
-  // Remove flashing, add slide animation (text stays visible)
-  puzzleEl.classList.remove('flashing');
-  puzzleEl.classList.add('slide-left');
-  
-  // Wait for slide animation to complete (800ms) BEFORE clearing
-  setTimeout(function(){
-    puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    puzzleEl.classList.remove('slide-left');
-    if(!hasWord){
-      puzzleEl.classList.remove('strikethrough');
-    }
-    newPuzzle();
-    locked = false;
-  }, 800); // Match animation duration
-  
-}, 800);
+    // FIX 3: Use safeTimeout for all nested setTimeout calls
+    safeTimeout(function(){
+      if(hasWord && flashedWord){
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
+      } else {
+        addAnswer(puzzle, null, 'white');
+      }
+      
+      puzzleEl.classList.remove('flashing');
+      puzzleEl.classList.add('slide-left');
+      
+      safeTimeout(function(){
+        puzzleEl.style.color = '#fff';
+        puzzleEl.textContent = '';
+        puzzleEl.classList.remove('slide-left');
+        if(!hasWord){
+          puzzleEl.classList.remove('strikethrough');
+        }
+        newPuzzle();
+        // newPuzzle() calls setLocked(false) — no need to repeat here
+      }, 800);
+      
+    }, 800);
       
   } else {
     
@@ -1043,7 +1056,7 @@ function handleAnswer(userSaysYes){
     scoreBox.className = 'negative';
     
     renderPuzzle();
-    locked = true;
+    setLocked(true);
 if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
@@ -1074,7 +1087,6 @@ if(userSaysYes === true && hasWord === false){
   puzzleEl.classList.add('flashing');
   
   // Create "WHAT THE..." text
-  // Create "WHAT THE..." text
 var whatThe = document.createElement('div');
 whatThe.id = 'whatThe';
 whatThe.textContent = 'WHAT THE';
@@ -1093,34 +1105,34 @@ var removeTimeout = setTimeout(function() {
   if(whatThe && whatThe.remove) whatThe.remove();
 }, 2000);
 
-// Wait for flash to complete, THEN slide
-safeTimeout(function(){
-  puzzleEl.classList.remove('flashing');
-  puzzleEl.classList.add('slide-right');
-  if(whatThe) whatThe.classList.add('slide-right');
-  
+  // FIX 3 (continued): Use safeTimeout here too
   safeTimeout(function(){
-    if(whatThe && whatThe.remove) whatThe.remove();
-    puzzleEl.classList.remove('strikethrough');
-    puzzleEl.classList.remove('slide-right');
-    puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    addAnswer(puzzle, null, '#f66');
-    tabLevel = 0;
-    score = 0;
-    updateScoreDisplay();
+    puzzleEl.classList.remove('flashing');
+    puzzleEl.classList.add('slide-right');
+    if(whatThe) whatThe.classList.add('slide-right');
     
-    if(fapoNumber >= 5 && fapoNumber > highScore){
-      gameoverEl.style.display = 'flex';
-      document.body.classList.add('gameover');
-      locked = true;
-      return;
-    }
-    
-    newPuzzle();
-    locked = false;
+    safeTimeout(function(){
+      if(whatThe && whatThe.remove) whatThe.remove();
+      puzzleEl.classList.remove('strikethrough');
+      puzzleEl.classList.remove('slide-right');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      addAnswer(puzzle, null, '#f66');
+      tabLevel = 0;
+      score = 0;
+      updateScoreDisplay();
+      
+      if(fapoNumber >= 5 && fapoNumber > highScore){
+        gameoverEl.style.display = 'flex';
+        document.body.classList.add('gameover');
+        setLocked(true);
+        return;
+      }
+      
+      newPuzzle();
+      // newPuzzle() calls setLocked(false)
+    }, 800);
   }, 800);
-}, 800);
 
 }
   
@@ -1132,26 +1144,25 @@ else if(userSaysYes === false && hasWord === true){
       puzzleEl.style.color = '#6f6';  // G FLASH
       puzzleEl.classList.add('flashing');
       
-  setTimeout(function(){
-  addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
-  
-  // Remove flashing, add slide animation (text stays visible)
-  puzzleEl.classList.remove('flashing');
-  puzzleEl.classList.add('slide-right');
-  
-  // Wait for slide animation to complete (800ms) BEFORE clearing
-  setTimeout(function(){
-    puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    puzzleEl.classList.remove('slide-right');
-    tabLevel = 0;
-    score = 0;
-    updateScoreDisplay();
-    newPuzzle();
-    locked = false;
-  }, 800); // Match animation duration
-  
-}, 800);
+  // FIX 3 (continued): Use safeTimeout here too
+  safeTimeout(function(){
+    addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
+    
+    puzzleEl.classList.remove('flashing');
+    puzzleEl.classList.add('slide-right');
+    
+    safeTimeout(function(){
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      puzzleEl.classList.remove('slide-right');
+      tabLevel = 0;
+      score = 0;
+      updateScoreDisplay();
+      newPuzzle();
+      // newPuzzle() calls setLocked(false)
+    }, 800);
+    
+  }, 800);
       
     } else {
       newPuzzle();
@@ -1176,7 +1187,7 @@ document.addEventListener('keydown', function(e){
     document.getElementById('highscoreNumber').textContent = '0';
     updateScoreDisplay();
     renderAnswers();
-    locked = false;
+    setLocked(false);
     newPuzzle();
     return;
   }
@@ -1191,20 +1202,21 @@ document.addEventListener('keydown', function(e){
   if(locked) return;
   handleAnswer(k === 'Y');
 }, true);
-// Touch button input
-// Touch button input with debounce for mobile
-var lastPress = 0;
+
+// FIX 4: Separate debounce per button
+var lastPressY = 0, lastPressN = 0;
+
 document.getElementById('btnY').addEventListener('click', function(){
   var now = Date.now();
-  if(now - lastPress < 300) return; // Debounce 300ms
-  lastPress = now;
+  if(now - lastPressY < 300) return;
+  lastPressY = now;
   if(!locked) handleAnswer(true);
 });
 
 document.getElementById('btnN').addEventListener('click', function(){
   var now = Date.now();
-  if(now - lastPress < 300) return;
-  lastPress = now;
+  if(now - lastPressN < 300) return;
+  lastPressN = now;
   if(!locked) handleAnswer(false);
 });
 
