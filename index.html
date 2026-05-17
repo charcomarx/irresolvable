@@ -475,6 +475,16 @@ font-family: 'Arial', sans-serif;
     display:block;
     width:100%;
   } 
+  /* Improve mobile touch response */
+#btnY, #btnN {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent animation accumulation */
+.slide-left, .slide-right, .flashing {
+  will-change: transform;
+}
   /* When game over is visible, hide these elements */
 body.gameover #buttons,
 body.gameover #instruction2,
@@ -1022,49 +1032,54 @@ if(userSaysYes === true && hasWord === false){
   puzzleEl.classList.add('flashing');
   
   // Create "WHAT THE..." text
-  var whatThe = document.createElement('div');
-  whatThe.id = 'whatThe';
-  whatThe.textContent = 'WHAT THE';
-  whatThe.style.position = 'fixed';
-  whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 5) + 'px';
-  whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
-  whatThe.style.fontSize = '15px';
-  whatThe.style.color = '#f66';
-  whatThe.style.whiteSpace = 'nowrap';
-  whatThe.style.pointerEvents = 'none';
-  whatThe.style.zIndex = '200';
-  document.body.appendChild(whatThe);
-  
-  // Wait for flash to complete, THEN slide
-  setTimeout(function(){
-    puzzleEl.classList.remove('flashing');
-    puzzleEl.classList.add('slide-right');
-    whatThe.classList.add('slide-right');
-    
-    // Remove elements AFTER animation completes
-    setTimeout(function(){
-      whatThe.remove();
-      puzzleEl.classList.remove('strikethrough');
-      puzzleEl.classList.remove('slide-right');
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      addAnswer(puzzle, null, '#f66');
-      tabLevel = 0;
-      score = 0;
-      updateScoreDisplay();
-     
-      // Add this check right after:
-  if(fapoNumber >= 5 && fapoNumber > highScore){
-  gameoverEl.style.display = 'flex';
-  document.body.classList.add('gameover');  // Add this line
-  locked = true;
-  return;
-}
+  // Create "WHAT THE..." text
+var whatThe = document.createElement('div');
+whatThe.id = 'whatThe';
+whatThe.textContent = 'WHAT THE';
+whatThe.style.position = 'fixed';
+whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 5) + 'px';
+whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
+whatThe.style.fontSize = '15px';
+whatThe.style.color = '#f66';
+whatThe.style.whiteSpace = 'nowrap';
+whatThe.style.pointerEvents = 'none';
+whatThe.style.zIndex = '200';
+document.body.appendChild(whatThe);
 
-      newPuzzle();
-      locked = false;
-    }, 800);
+// Set a timeout to force removal if animation fails
+var removeTimeout = setTimeout(function() {
+  if(whatThe && whatThe.remove) whatThe.remove();
+}, 2000);
+
+// Wait for flash to complete, THEN slide
+setTimeout(function(){
+  clearTimeout(removeTimeout); // Cancel force removal if we get here
+  puzzleEl.classList.remove('flashing');
+  puzzleEl.classList.add('slide-right');
+  if(whatThe) whatThe.classList.add('slide-right');
+  
+  setTimeout(function(){
+    if(whatThe && whatThe.remove) whatThe.remove();
+    puzzleEl.classList.remove('strikethrough');
+    puzzleEl.classList.remove('slide-right');
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    addAnswer(puzzle, null, '#f66');
+    tabLevel = 0;
+    score = 0;
+    updateScoreDisplay();
+    
+    if(fapoNumber >= 5 && fapoNumber > highScore){
+      gameoverEl.style.display = 'flex';
+      document.body.classList.add('gameover');
+      locked = true;
+      return;
+    }
+    
+    newPuzzle();
+    locked = false;
   }, 800);
+}, 800);
 }
   
 else if(userSaysYes === false && hasWord === true){
