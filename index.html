@@ -1036,8 +1036,12 @@ function handleAnswer(userSaysYes){
       }
       
       puzzleEl.classList.remove('flashing');
-      puzzleEl.classList.add('slide-left');
-      
+
+      if(hasWord){
+  puzzleEl.classList.add('slide-left');  // Real words slide left
+} else {
+  puzzleEl.classList.add('slide-right'); // Non-words (strikethrough) slide right
+}     
       safeTimeout(function(){
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
