@@ -395,6 +395,16 @@ font-family: 'Arial', sans-serif;
     height:20px;
     flex-shrink:0;
   }
+  /* Prevent layout thrashing on mobile */
+#answerblock {
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+}
+
+.puzzleline {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
   #title{
     font-size:38px;
     padding:4px 8px;
@@ -549,6 +559,25 @@ var TAB_SP   = isMobile ? 1 : 4;
 var answerHistory = [];
 var recentPuzzles = [];
 
+// Track active timeouts to prevent memory leaks
+var activeTimeouts = [];
+
+function safeTimeout(fn, delay) {
+  var id = setTimeout(function() {
+    fn();
+    var index = activeTimeouts.indexOf(id);
+    if(index > -1) activeTimeouts.splice(index, 1);
+  }, delay);
+  activeTimeouts.push(id);
+  return id;
+}
+
+function clearAllTimeouts() {
+  for(var i = 0; i < activeTimeouts.length; i++) {
+    clearTimeout(activeTimeouts[i]);
+  }
+  activeTimeouts = [];
+}
 var titleEl    = document.getElementById('title');
 var puzzleRowEl= document.getElementById('puzzlerow');
 var puzzleEl   = document.getElementById('puzzleline');
@@ -561,6 +590,7 @@ var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
 // Add this to reset the game when clicking on game over screen
 gameoverEl.addEventListener('click', function(){
+  clearAllTimeouts();
   gameoverEl.style.display = 'none';
   document.body.classList.remove('gameover');
   score = 0;
@@ -613,10 +643,18 @@ function updateHighScore(){
   }
   puzzleEl.classList.add('waiting');
 }
-  function addAnswer(text, link, color){
+  
+    function addAnswer(text, link, color){
   answerHistory.unshift({text: text, link: link || null, color: color});
+  
+  // Limit history to 20 items on mobile, 50 on desktop
+  var maxHistory = isMobile ? 20 : 50;
+  while(answerHistory.length > maxHistory) {
+    answerHistory.pop();
+  }
+  
   renderAnswers();
-}
+
 function renderAnswers(){
   answerEl.innerHTML = '';
   for(var i = 0; i < answerHistory.length; i++){
@@ -1056,13 +1094,12 @@ var removeTimeout = setTimeout(function() {
 }, 2000);
 
 // Wait for flash to complete, THEN slide
-setTimeout(function(){
-  clearTimeout(removeTimeout); // Cancel force removal if we get here
+safeTimeout(function(){
   puzzleEl.classList.remove('flashing');
   puzzleEl.classList.add('slide-right');
   if(whatThe) whatThe.classList.add('slide-right');
   
-  setTimeout(function(){
+  safeTimeout(function(){
     if(whatThe && whatThe.remove) whatThe.remove();
     puzzleEl.classList.remove('strikethrough');
     puzzleEl.classList.remove('slide-right');
@@ -1084,6 +1121,7 @@ setTimeout(function(){
     locked = false;
   }, 800);
 }, 800);
+
 }
   
 else if(userSaysYes === false && hasWord === true){
@@ -1154,10 +1192,19 @@ document.addEventListener('keydown', function(e){
   handleAnswer(k === 'Y');
 }, true);
 // Touch button input
+// Touch button input with debounce for mobile
+var lastPress = 0;
 document.getElementById('btnY').addEventListener('click', function(){
+  var now = Date.now();
+  if(now - lastPress < 300) return; // Debounce 300ms
+  lastPress = now;
   if(!locked) handleAnswer(true);
 });
+
 document.getElementById('btnN').addEventListener('click', function(){
+  var now = Date.now();
+  if(now - lastPress < 300) return;
+  lastPress = now;
   if(!locked) handleAnswer(false);
 });
 
