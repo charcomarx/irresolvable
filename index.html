@@ -231,8 +231,9 @@ font-size:20px;
   position:fixed;
   inset:0;
   background:#000;
-  align-items:center;
-  justify-content:center;
+  align-items: flex-end;  /* Change from center to flex-end */
+  justify-content: flex-end;  /* Change from center to flex-end */
+  padding: 20px;  /* Add some padding from edges */
   z-index:99;
 }
 /* Slide left for white words (correct answers) */
@@ -272,6 +273,7 @@ font-size:20px;
   font-size:20px;
   letter-spacing:2px;
   text-align:right;
+  width: 100%;
 }
 
 @keyframes gb{
@@ -544,7 +546,7 @@ body.gameover #tapHere {
 </div>
   <div id="status" style="display:none;"></div>
   <div id="gameover">
-  <div id="gotext">Y_U K_NOT TH_ W_OR_DS<br><br><span style="color:#fff;">GAME OVER</span><br><br>* CLICK TO RESTART *</div>
+  <div id="gotext">Y_U K_NOT TH_ W_OR_DS<br><br><span style="color:#fff;">GAME OVER</span><br><br>* TAP OR PRESS ANY KEY TO RESTART *</div>
 </div>
 
 <!-- Message box at bottom - FIXED POSITION -->
@@ -924,7 +926,7 @@ function newPuzzle(){
 
   setLocked(false);
   
-  var isImpossible = Math.random() < 0.33;
+  var isImpossible = Math.random() < 0.5;
   
   if(isImpossible){
     puzzle = generateImpossible();
