@@ -929,12 +929,7 @@ blankCount = Math.min(blankCount, word.length - 2);
   ];
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
-
-function newPuzzle(){
-  if(dict.length === 0){
-    setTimeout(newPuzzle, 100);
-    return;
-  }
+ clearAllTimeouts(); 
 
   // FIX 2: Always unlock when a new puzzle is ready
   setLocked(false);
