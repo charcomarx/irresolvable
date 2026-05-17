@@ -229,19 +229,19 @@ font-size:20px;
 /* Slide left for white words (correct answers) */
 @keyframes slideLeft{
   0%{ transform: translateX(0); }
-  100%{ transform: translateX(-100%); }
+  100%{ transform: translateX(-100vw); } 
 }
 .slide-left{
-  animation: slideLeft 0.3s ease-out forwards;
+  animation: slideLeft 0.1s ease-out forwards;
 }
 
 /* Slide right for red/green words (incorrect answers) */
 @keyframes slideRight{
   0%{ transform: translateX(0); }
-  100%{ transform: translateX(100%); }
+  100%{ transform: translateX(100vw); } 
 }
 .slide-right{
-  animation: slideRight 0.3s ease-out forwards;
+  animation: slideRight 0.1s ease-out forwards;
 }
 
 /* WHAT THE... text style */
@@ -1018,13 +1018,12 @@ if(fapoNumber >= highScore * 3 && highScore > 0){
   // Create "WHAT THE..." text
   var whatThe = document.createElement('div');
   whatThe.id = 'whatThe';
-  whatThe.textContent = 'WHAT THE...';
+  whatThe.textContent = 'WHAT THE';
   whatThe.style.position = 'fixed';
   whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 50) + 'px';
   whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
-  whatThe.style.fontSize = '35px';
+  whatThe.style.fontSize = '15px';
   whatThe.style.color = '#f66';
-  whatThe.style.fontWeight = 'bold';
   whatThe.style.whiteSpace = 'nowrap';
   whatThe.style.pointerEvents = 'none';
   whatThe.style.zIndex = '200';
