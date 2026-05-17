@@ -985,7 +985,7 @@ if(userSaysYes === true && hasWord === false){
   document.getElementById('fapoNumber').textContent = fapoNumber;
 
 // Add this check right after:
-if(fapoNumber >= highScore * 3 && highScore > 0){
+  if(fapoNumber >= 5 && fapoNumber > highScore){
   gameoverEl.style.display = 'flex';
   locked = true;
   return; // Stop further execution
