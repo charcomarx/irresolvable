@@ -174,15 +174,15 @@ font-size:20px;
 /* Make list vertical on all devices (like mobile) */
 #answerblock {
   margin-top: 20px;
-  flex: 0 0 auto;
+  flex: 1; 
   padding: 0 6px 4px 6px;
   column-count: 1;  /* Single column */
   column-gap: 20px;
   column-fill: auto;
   overflow-y: auto;  /* Vertical scroll */
   overflow-x: hidden;  /* NO horizontal scroll */
-  max-height: 35vh;
-  min-height: 100px;
+  max-height: none;
+  min-height: 0;
   width: 100%;
   z-index: 100;
 }
@@ -231,8 +231,6 @@ font-size:20px;
   position:fixed;
   inset:0;
   background:#000;
-  align-items: flex-end;  /* Change from center to flex-end */
-  justify-content: flex-end;  /* Change from center to flex-end */
   padding: 20px;  /* Add some padding from edges */
   z-index:99;
 }
@@ -406,7 +404,14 @@ font-family: 'Arial', sans-serif;
     flex-shrink:0;
   }
   /* Prevent layout thrashing on mobile */
-#answerblock {
+    #answerblock {
+    margin-top: 100px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    padding: 0 4px 4px 4px;
   -webkit-overflow-scrolling: touch;
   transform: translateZ(0);
   pointer-events: none; 
