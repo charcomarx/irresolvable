@@ -33,10 +33,8 @@ html,body{
   padding:2px 4px;
   flex-shrink:0;
   font-size:60px;
-  letter-spacing:10px;
+  letter-spacing:18;
   font-weight:bold;
-  z-index: 100; 
-  position: relative;
 }
   #highscore{
   position:fixed;
@@ -44,8 +42,7 @@ html,body{
   left:10px;
   font-size:14px;
   color:#000;
-  font-weight:normal;
-  z-index: 100;    
+  font-weight:bold;
 }
   #puzzleline.strikethrough{
   text-decoration: line-through;
@@ -56,9 +53,7 @@ html,body{
   left:135px;
   font-size:25px;
   color:#000;
-  font-weight:normal;
-  font-family: 'Courier New', Courier, monospace;
-  z-index: 100;
+  font-weight:bold;
 }
 #fapoLabel{ 
   position:fixed; 
@@ -66,8 +61,7 @@ html,body{
   left:10px; 
   font-size:14px; 
   color:#f66;
-  font-weight:normal;
-  z-index: 100;
+  font-weight:bold;
 
  }
   #fapoNumber{ 
@@ -76,9 +70,7 @@ html,body{
   left:150px; 
   font-size:25px; 
   color:#f66; 
-  font-weight:normal;
-  font-family: 'Courier New', Courier, monospace;
-  z-index: 100;
+  font-weight:bold;
   } 
   @keyframes loadingOnce{
   0%{ width: 0; }
@@ -171,32 +163,27 @@ font-size:20px;
   flex-shrink:0;
   white-space:pre;
 }
-/* Make list vertical on all devices (like mobile) */
-#answerblock {
-  margin-top: 20px;
-  flex: 0 0 auto;
-  padding: 0 6px 4px 6px;
-  column-count: 1;  /* Single column */
-  column-gap: 20px;
+
+#answerblock{
+  margin-top: 20px; 
+  flex:0 0 auto;
+  padding:0 6px 4px 6px;
+  column-count:3;
+  column-gap:20px;
   column-fill: auto;
-  overflow-y: auto;  /* Vertical scroll */
-  overflow-x: hidden;  /* NO horizontal scroll */
-  max-height: 35vh;
-  min-height: 100px;
-  width: 100%;
-  z-index: 100;
+  overflow-y:auto;
+  max-height:35vh;
+  min-height:100px;
+  width:100%;
 }
 
-.aline {
-  font-size: 16px;
-  white-space: normal;  /* Allow wrapping instead of nowrap */
-  word-break: break-word;  /* Break long words */
-  line-height: 1.3;
-  margin: 2px 0;
-  font-family: 'Courier New', Courier, monospace;
-  break-inside: avoid;
-  display: block;
-  width: 100%;
+.aline{
+  font-size:16px;
+  white-space:nowrap;
+  line-height:1.3;
+  margin:2px 0;
+  font-family:'Courier New',Courier,monospace;
+  break-inside:avoid;
 }
 
 .aline.correct{
@@ -225,6 +212,8 @@ font-size:20px;
 .aline a:hover{
   color:#fff;
 }
+
+
 #gameover{
   display:none;
   position:fixed;
@@ -234,43 +223,12 @@ font-size:20px;
   justify-content:center;
   z-index:99;
 }
-/* Slide left for white words (correct answers) */
-@keyframes slideLeft{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(-100vw); } 
-}
-.slide-left{
-  animation: slideLeft 0.3s ease-out forwards;
-}
 
-/* Slide right for red/green words (incorrect answers) */
-@keyframes slideRight{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(100vw); } 
-}
-.slide-right{
-  animation: slideRight 0.15s ease-out forwards;
-}
-
-/* WHAT THE... text style */
-#whatThe{
-  position: absolute;
-  font-size: 15px;
-  color: #f66;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 200;
-}
-
-/* WHAT THE... slide right with word */
-#whatThe.slide-right{
-  animation: slideRight 0.15s ease-out forwards;
-}
 #gotext{
-  color:#6f6;
-  font-size:20px;
-  letter-spacing:2px;
-  text-align:center;
+  color:#fff;
+  font-size:22px;
+  letter-spacing:3px;
+  animation:gb .5s step-end infinite;
 }
 
 @keyframes gb{
@@ -284,7 +242,6 @@ font-size:20px;
 @keyframes flash{
     0%{ transform: scale(1); }
   40%{ transform: scale(1.6); }
-  50%{ transform: scale(1.7); }
   60%{ transform: scale(1.8); }
   100%{ transform: scale(1); }
 
@@ -299,7 +256,7 @@ font-size:20px;
   border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:86px;
-  font-weight:normal;
+  font-weight:900;
   width:100px;
   height:110px;
   border-radius:8px;
@@ -386,7 +343,6 @@ font-family: 'Arial', sans-serif;
   text-size-adjust: none;
   -webkit-text-size-adjust: none;
 }
-  
 @media (max-width: 600px){
   #topspacer{
     height:10px;
@@ -395,16 +351,6 @@ font-family: 'Arial', sans-serif;
     height:20px;
     flex-shrink:0;
   }
-  /* Prevent layout thrashing on mobile */
-#answerblock {
-  -webkit-overflow-scrolling: touch;
-  transform: translateZ(0);
-}
-
-.puzzleline {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
   #title{
     font-size:38px;
     padding:4px 8px;
@@ -489,22 +435,6 @@ font-family: 'Arial', sans-serif;
     display:block;
     width:100%;
   } 
-  /* Improve mobile touch response */
-#btnY, #btnN {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Prevent animation accumulation */
-.slide-left, .slide-right, .flashing {
-  will-change: transform;
-}
-  /* When game over is visible, hide these elements */
-body.gameover #buttons,
-body.gameover #instruction2,
-body.gameover #tapHere {
-  display: none;
-}
 } 
 </style>
 </head>
@@ -534,7 +464,7 @@ body.gameover #tapHere {
 </div>
   <div id="status" style="display:none;"></div>
   <div id="gameover">
-  <div id="gotext">Y_U K_NOT TH_ W_OR_DS<br><br><span style="color:#fff;">GAME OVER</span><br><br>* CLICK TO RESTART *</div>
+  <div id="gotext">Y_U K_NOT TH_ W_OR_DS</div>
 </div>
 
 <!-- Message box at bottom - FIXED POSITION -->
@@ -559,36 +489,6 @@ var TAB_SP   = isMobile ? 1 : 4;
 var answerHistory = [];
 var recentPuzzles = [];
 
-// Track active timeouts to prevent memory leaks
-var activeTimeouts = [];
-
-function safeTimeout(fn, delay) {
-  var id = setTimeout(function() {
-    fn();
-    var index = activeTimeouts.indexOf(id);
-    if(index > -1) activeTimeouts.splice(index, 1);
-  }, delay);
-  activeTimeouts.push(id);
-  return id;
-}
-
-function clearAllTimeouts() {
-  for(var i = 0; i < activeTimeouts.length; i++) {
-    clearTimeout(activeTimeouts[i]);
-  }
-  activeTimeouts = [];
-}
-
-// FIX 1: Watchdog — if locked stays true for more than 3s, force-unlock
-var lockWatchdog = null;
-function setLocked(val) {
-  locked = val;
-  clearTimeout(lockWatchdog);
-  if(val) {
-    lockWatchdog = setTimeout(function(){ locked = false; }, 3000);
-  }
-}
-
 var titleEl    = document.getElementById('title');
 var puzzleRowEl= document.getElementById('puzzlerow');
 var puzzleEl   = document.getElementById('puzzleline');
@@ -599,23 +499,7 @@ var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
-// Add this to reset the game when clicking on game over screen
-gameoverEl.addEventListener('click', function(){
-  clearAllTimeouts();
-  gameoverEl.style.display = 'none';
-  document.body.classList.remove('gameover');
-  score = 0;
-  fapoNumber = 0;
-  highScore = 0;
-  answerHistory = [];
-  recentPuzzles = [];
-  document.getElementById('fapoNumber').textContent = '0';
-  document.getElementById('highscoreNumber').textContent = '0';
-  updateScoreDisplay();
-  renderAnswers();
-  setLocked(false);
-  newPuzzle();
-});
+
 
 function updateScoreDisplay(){
   if(score > 0){
@@ -654,18 +538,10 @@ function updateHighScore(){
   }
   puzzleEl.classList.add('waiting');
 }
-  
-    function addAnswer(text, link, color){
+  function addAnswer(text, link, color){
   answerHistory.unshift({text: text, link: link || null, color: color});
-  
-  // Limit history to 20 items on mobile, 50 on desktop
-  var maxHistory = isMobile ? 20 : 50;
-  while(answerHistory.length > maxHistory) {
-    answerHistory.pop();
-  }
-  
   renderAnswers();
-} 
+}
 function renderAnswers(){
   answerEl.innerHTML = '';
   for(var i = 0; i < answerHistory.length; i++){
@@ -911,11 +787,8 @@ function newPuzzle(){
     setTimeout(newPuzzle, 100);
     return;
   }
-
-  // FIX 2: Always unlock when a new puzzle is ready
-  setLocked(false);
   
-  var isImpossible = Math.random() < 0.33;
+  var isImpossible = Math.random() < 0.30;
   
   if(isImpossible){
     puzzle = generateImpossible();
@@ -1021,33 +894,24 @@ function handleAnswer(userSaysYes){
       puzzleEl.classList.add('strikethrough');
     }
     
-    setLocked(true);
+    locked = true;
     puzzleEl.style.color = '#fff';
     puzzleEl.classList.add('flashing');
-    
-    // FIX 3: Use safeTimeout for all nested setTimeout calls
-    safeTimeout(function(){
+    setTimeout(function(){
       if(hasWord && flashedWord){
         addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
       } else {
         addAnswer(puzzle, null, 'white');
       }
-      
       puzzleEl.classList.remove('flashing');
-      puzzleEl.classList.add('slide-left');
-      
-      safeTimeout(function(){
-        puzzleEl.style.color = '#fff';
-        puzzleEl.textContent = '';
-        puzzleEl.classList.remove('slide-left');
-        if(!hasWord){
-          puzzleEl.classList.remove('strikethrough');
-        }
-        newPuzzle();
-        // newPuzzle() calls setLocked(false) — no need to repeat here
-      }, 800);
-      
-    }, 800);
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      if(!hasWord){
+        puzzleEl.classList.remove('strikethrough');
+      }
+      newPuzzle();
+      locked = false;
+    }, 1500);
       
   } else {
     
@@ -1056,18 +920,17 @@ function handleAnswer(userSaysYes){
     scoreBox.className = 'negative';
     
     renderPuzzle();
-    setLocked(true);
-
-
-  if(userSaysYes === true && hasWord === false){
+    locked = true;
+if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
-
+  
   var filledPattern;
   var attempts = 0;
   var maxAttempts = 10;
   
   do {
+    // Generate weighted random fill
     filledPattern = puzzle;
     var existingChars = filledPattern.split('');
     while(filledPattern.indexOf('_') !== -1){
@@ -1081,63 +944,22 @@ function handleAnswer(userSaysYes){
   
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  
-  // Store the text we want to animate
-  var displayText = prefix + filledPattern + '?';
-  puzzleEl.textContent = displayText;
+  puzzleEl.textContent = prefix + filledPattern + '?';
   puzzleEl.style.color = '#f66';
   puzzleEl.classList.add('flashing');
-  
-  // Create "WHAT THE..." text
-var whatThe = document.createElement('div');
-whatThe.id = 'whatThe';
-whatThe.textContent = 'WHAT THE';
-whatThe.style.position = 'fixed';
-whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 5) + 'px';
-whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
-whatThe.style.fontSize = '15px';
-whatThe.style.color = '#f66';
-whatThe.style.whiteSpace = 'nowrap';
-whatThe.style.pointerEvents = 'none';
-whatThe.style.zIndex = '200';
-document.body.appendChild(whatThe);
-
-
-safeTimeout(function() {
-  if(whatThe && whatThe.remove) whatThe.remove();
-}, 2000);
-    
-  // FIX 3 (continued): Use safeTimeout here too
-  safeTimeout(function(){
+  setTimeout(function(){
+    puzzleEl.classList.remove('strikethrough'); 
+    addAnswer(puzzle, null, '#f66');
     puzzleEl.classList.remove('flashing');
-    puzzleEl.classList.add('slide-right');
-    if(whatThe) whatThe.classList.add('slide-right');
-    
-    safeTimeout(function(){
-      if(whatThe && whatThe.remove) whatThe.remove();
-      puzzleEl.classList.remove('strikethrough');
-      puzzleEl.classList.remove('slide-right');
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      addAnswer(puzzle, null, '#f66');
-      tabLevel = 0;
-      score = 0;
-      updateScoreDisplay();
-      
-      if(fapoNumber >= 5 && fapoNumber > highScore){
-        gameoverEl.style.display = 'flex';
-        document.body.classList.add('gameover');
-        setLocked(true);
-        return;
-      }
-      
-      newPuzzle();
-      // newPuzzle() calls setLocked(false)
-    }, 800);
-  }, 800);
-
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    tabLevel = 0;
+    score = 0;
+    updateScoreDisplay();
+    newPuzzle();
+    locked = false;
+  }, 1500);
 }
-  
 else if(userSaysYes === false && hasWord === true){
       // Missed word - flash G, list GREEN
       var prefix = '';
@@ -1145,26 +967,18 @@ else if(userSaysYes === false && hasWord === true){
       puzzleEl.textContent = prefix + flashedWord.toUpperCase() + '!';
       puzzleEl.style.color = '#6f6';  // G FLASH
       puzzleEl.classList.add('flashing');
-      
-  // FIX 3 (continued): Use safeTimeout here too
-  safeTimeout(function(){
-    addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
-    
-    puzzleEl.classList.remove('flashing');
-    puzzleEl.classList.add('slide-right');
-    
-    safeTimeout(function(){
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      puzzleEl.classList.remove('slide-right');
-      tabLevel = 0;
-      score = 0;
-      updateScoreDisplay();
-      newPuzzle();
-      // newPuzzle() calls setLocked(false)
-    }, 800);
-    
-  }, 800);
+      setTimeout(function(){
+        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');  // GREEN LIST
+        puzzleEl.classList.remove('flashing');
+        puzzleEl.style.color = '#fff';
+        puzzleEl.textContent = '';
+        tabLevel = 0;
+        // Reset score to 0 AFTER list is added
+        score = 0;
+        updateScoreDisplay();
+        newPuzzle();
+        locked = false;
+      }, 1500);
       
     } else {
       newPuzzle();
@@ -1174,27 +988,6 @@ else if(userSaysYes === false && hasWord === true){
 // Keyboard input
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
-  
-  // If game over is showing, ANY key restarts
-  if(gameoverEl.style.display === 'flex'){
-    e.preventDefault();
-    gameoverEl.style.display = 'none';
-    document.body.classList.remove('gameover');
-    score = 0;
-    fapoNumber = 0;
-    highScore = 0;
-    answerHistory = [];
-    recentPuzzles = [];
-    document.getElementById('fapoNumber').textContent = '0';
-    document.getElementById('highscoreNumber').textContent = '0';
-    updateScoreDisplay();
-    renderAnswers();
-    setLocked(false);
-    newPuzzle();
-    return;
-  }
-  
-  // Normal gameplay - only Y/N keys work
   if(k !== 'Y' && k !== 'N') return;
   
   if(document.activeElement && document.activeElement.id === 'noteInput') return;
@@ -1205,20 +998,11 @@ document.addEventListener('keydown', function(e){
   handleAnswer(k === 'Y');
 }, true);
 
-// FIX 4: Separate debounce per button
-var lastPressY = 0, lastPressN = 0;
-
+// Touch button input
 document.getElementById('btnY').addEventListener('click', function(){
-  var now = Date.now();
-  if(now - lastPressY < 300) return;
-  lastPressY = now;
   if(!locked) handleAnswer(true);
 });
-
 document.getElementById('btnN').addEventListener('click', function(){
-  var now = Date.now();
-  if(now - lastPressN < 300) return;
-  lastPressN = now;
   if(!locked) handleAnswer(false);
 });
 
