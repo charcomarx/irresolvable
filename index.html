@@ -33,7 +33,7 @@ html,body{
   padding:2px 4px;
   flex-shrink:0;
   font-size:60px;
-  letter-spacing:18;
+  letter-spacing:4px;
   font-weight:bold;
 }
   #highscore{
@@ -223,7 +223,41 @@ font-size:20px;
   justify-content:center;
   z-index:99;
 }
+/* Slide left for white words (correct answers) */
+@keyframes slideLeft{
+  0%{ transform: translateX(0) scale(1); opacity: 1; }
+  60%{ transform: translateX(-30%) scale(1.3); opacity: 1; }
+  100%{ transform: translateX(-100%) scale(0.8); opacity: 0; }
+}
+.slide-left{
+  animation: slideLeft 0.8s ease-out forwards;
+}
 
+/* Slide right for red/green words (incorrect answers) */
+@keyframes slideRight{
+  0%{ transform: translateX(0) scale(1); opacity: 1; }
+  60%{ transform: translateX(30%) scale(1.3); opacity: 1; }
+  100%{ transform: translateX(100%) scale(0.8); opacity: 0; }
+}
+.slide-right{
+  animation: slideRight 0.8s ease-out forwards;
+}
+
+/* WHAT THE... text style */
+#whatThe{
+  position: absolute;
+  font-size: 30px;
+  color: #f66;
+  font-weight: bold;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 200;
+}
+
+/* WHAT THE... slide right with word */
+#whatThe.slide-right{
+  animation: slideRight 0.8s ease-out forwards;
+}
 #gotext{
   color:#fff;
   font-size:22px;
@@ -242,6 +276,7 @@ font-size:20px;
 @keyframes flash{
     0%{ transform: scale(1); }
   40%{ transform: scale(1.6); }
+  50%{ transform: scale(1.7); }
   60%{ transform: scale(1.8); }
   100%{ transform: scale(1); }
 
@@ -903,6 +938,7 @@ function handleAnswer(userSaysYes){
       } else {
         addAnswer(puzzle, null, 'white');
       }
+      puzzleEl.classList.add('slide-left');
       puzzleEl.classList.remove('flashing');
       puzzleEl.style.color = '#fff';
       puzzleEl.textContent = '';
@@ -947,7 +983,30 @@ if(userSaysYes === true && hasWord === false){
   puzzleEl.textContent = prefix + filledPattern + '?';
   puzzleEl.style.color = '#f66';
   puzzleEl.classList.add('flashing');
-  setTimeout(function(){
+  // Create "WHAT THE..." text above the puzzle
+var whatThe = document.createElement('div');
+whatThe.id = 'whatThe';
+whatThe.textContent = 'WHAT THE...';
+whatThe.style.position = 'absolute';
+whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 60) + 'px';
+whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
+whatThe.style.fontSize = '35px';
+whatThe.style.color = '#f66';
+whatThe.style.fontWeight = 'bold';
+whatThe.style.whiteSpace = 'nowrap';
+whatThe.style.pointerEvents = 'none';
+whatThe.style.zIndex = '200';
+whatThe.style.opacity = '1';
+document.body.appendChild(whatThe);
+
+// Add slide class to both puzzle and "WHAT THE..."
+puzzleEl.classList.add('slide-right');
+whatThe.classList.add('slide-right');
+
+// Remove "WHAT THE..." after animation
+setTimeout(function(){
+  whatThe.remove();
+}, 800);
     puzzleEl.classList.remove('strikethrough'); 
     addAnswer(puzzle, null, '#f66');
     puzzleEl.classList.remove('flashing');
@@ -973,6 +1032,7 @@ else if(userSaysYes === false && hasWord === true){
         puzzleEl.style.color = '#fff';
         puzzleEl.textContent = '';
         tabLevel = 0;
+        puzzleEl.classList.add('slide-right');
         // Reset score to 0 AFTER list is added
         score = 0;
         updateScoreDisplay();
