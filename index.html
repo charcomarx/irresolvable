@@ -36,6 +36,7 @@ html,body{
   letter-spacing:10px;
   font-weight:bold;
   z-index: 100; 
+  position: relative;
 }
   #highscore{
   position:fixed;
@@ -219,8 +220,6 @@ font-size:20px;
 .aline a:hover{
   color:#fff;
 }
-
-
 #gameover{
   display:none;
   position:fixed;
@@ -236,7 +235,7 @@ font-size:20px;
   100%{ transform: translateX(-100vw); } 
 }
 .slide-left{
-  animation: slideLeft 0.1s ease-out forwards;
+  animation: slideLeft 0.2s ease-out forwards;
 }
 
 /* Slide right for red/green words (incorrect answers) */
@@ -245,7 +244,7 @@ font-size:20px;
   100%{ transform: translateX(100vw); } 
 }
 .slide-right{
-  animation: slideRight 0.1s ease-out forwards;
+  animation: slideRight 0.05s ease-out forwards;
 }
 
 /* WHAT THE... text style */
@@ -382,6 +381,7 @@ font-family: 'Arial', sans-serif;
   text-size-adjust: none;
   -webkit-text-size-adjust: none;
 }
+  
 @media (max-width: 600px){
   #topspacer{
     height:10px;
@@ -474,6 +474,12 @@ font-family: 'Arial', sans-serif;
     display:block;
     width:100%;
   } 
+  /* When game over is visible, hide these elements */
+body.gameover #buttons,
+body.gameover #instruction2,
+body.gameover #tapHere {
+  display: none;
+}
 } 
 </style>
 </head>
@@ -541,6 +547,7 @@ var fapoNumber = 0;
 // Add this to reset the game when clicking on game over screen
 gameoverEl.addEventListener('click', function(){
   gameoverEl.style.display = 'none';
+  document.body.classList.remove('gameover');
   score = 0;
   fapoNumber = 0;
   highScore = 0;
@@ -974,7 +981,7 @@ function handleAnswer(userSaysYes){
     locked = false;
   }, 800); // Match animation duration
   
-}, 1100);
+}, 1000);
       
   } else {
     
@@ -987,13 +994,14 @@ function handleAnswer(userSaysYes){
 if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
-
-// Add this check right after:
+  // Add this check right after:
   if(fapoNumber >= 5 && fapoNumber > highScore){
   gameoverEl.style.display = 'flex';
+  document.body.classList.add('gameover');  // Add this line
   locked = true;
-  return; // Stop further execution
+  return;
 }
+
   var filledPattern;
   var attempts = 0;
   var maxAttempts = 10;
@@ -1053,7 +1061,7 @@ if(userSaysYes === true && hasWord === false){
       newPuzzle();
       locked = false;
     }, 800);
-  }, 1100);
+  }, 1000);
 }
   
 else if(userSaysYes === false && hasWord === true){
@@ -1083,7 +1091,7 @@ else if(userSaysYes === false && hasWord === true){
     locked = false;
   }, 800); // Match animation duration
   
-}, 1100);
+}, 1000);
       
     } else {
       newPuzzle();
@@ -1098,6 +1106,7 @@ document.addEventListener('keydown', function(e){
   if(gameoverEl.style.display === 'flex'){
     e.preventDefault();
     gameoverEl.style.display = 'none';
+    document.body.classList.remove('gameover');
     score = 0;
     fapoNumber = 0;
     highScore = 0;
