@@ -24,6 +24,7 @@ html,body{
   flex-direction:column;
   width:100%;
   height:100%;
+   overflow: hidden;
 }
   
 #title{
@@ -414,9 +415,7 @@ font-family: 'Arial', sans-serif;
     padding: 0 4px 4px 4px;
   -webkit-overflow-scrolling: touch;
   transform: translateZ(0);
-  pointer-events: none; 
 }
-
 .puzzleline {
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -485,16 +484,7 @@ font-family: 'Arial', sans-serif;
     width:100px;
     height:110px;
     font-size:70px;
-  }
-  #answerblock{
-  margin-top: 100px; 
-    column-count:1;
-    column-gap:5px;
-    column-fill:auto;
-    overflow-y:auto;
-    overflow-x:hidden;
-    width:100%;
-    padding:0 4px 4px 4px;
+ 
   }
   .aline{
     font-size:18px;
