@@ -35,6 +35,7 @@ html,body{
   font-size:60px;
   letter-spacing:10px;
   font-weight:bold;
+  z-index: 100; 
 }
   #highscore{
   position:fixed;
@@ -973,7 +974,7 @@ function handleAnswer(userSaysYes){
     locked = false;
   }, 800); // Match animation duration
   
-}, 1500);
+}, 1100);
       
   } else {
     
@@ -1052,7 +1053,7 @@ if(userSaysYes === true && hasWord === false){
       newPuzzle();
       locked = false;
     }, 800);
-  }, 1500);
+  }, 1100);
 }
   
 else if(userSaysYes === false && hasWord === true){
@@ -1082,7 +1083,7 @@ else if(userSaysYes === false && hasWord === true){
     locked = false;
   }, 800); // Match animation duration
   
-}, 1500);
+}, 1100);
       
     } else {
       newPuzzle();
@@ -1092,6 +1093,26 @@ else if(userSaysYes === false && hasWord === true){
 // Keyboard input
 document.addEventListener('keydown', function(e){
   var k = e.key.toUpperCase();
+  
+  // If game over is showing, ANY key restarts
+  if(gameoverEl.style.display === 'flex'){
+    e.preventDefault();
+    gameoverEl.style.display = 'none';
+    score = 0;
+    fapoNumber = 0;
+    highScore = 0;
+    answerHistory = [];
+    recentPuzzles = [];
+    document.getElementById('fapoNumber').textContent = '0';
+    document.getElementById('highscoreNumber').textContent = '0';
+    updateScoreDisplay();
+    renderAnswers();
+    locked = false;
+    newPuzzle();
+    return;
+  }
+  
+  // Normal gameplay - only Y/N keys work
   if(k !== 'Y' && k !== 'N') return;
   
   if(document.activeElement && document.activeElement.id === 'noteInput') return;
@@ -1101,7 +1122,6 @@ document.addEventListener('keydown', function(e){
   if(locked) return;
   handleAnswer(k === 'Y');
 }, true);
-
 // Touch button input
 document.getElementById('btnY').addEventListener('click', function(){
   if(!locked) handleAnswer(true);
