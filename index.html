@@ -229,29 +229,17 @@ font-size:20px;
 .aline a:hover{
   color:#fff;
 }
-#gameover{
-  position:fixed;
-  inset:0;
-  background:#000;
-  padding: 20px;  /* Add some padding from edges */
-  z-index:999;
-  cursor: pointer; 
-}
-  body.gameover #instruction2 {
-  visibility: hidden;
-  position: relative;
-}
 
-body.gameover #instruction2::after {
-  content: "Y_U K_NOT TH_ W_OR_DS\A G A M E   O V E R\A TAP or PRESS\A A N Y   K E Y\A to RESTART";
-  visibility: visible;
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: #f66;
-  white-space: pre;
-  text-align: right;
+
+ #gameover {
+  display: none;
+  position: fixed;
+  top: 250px;
+  right: 10px;
+  z-index: 999;
+  cursor: pointer;
 }
+  
 /* Slide left for white words (correct answers) */
 @keyframes slideLeft{
   0%{ transform: translateX(0); }
@@ -284,14 +272,23 @@ body.gameover #instruction2::after {
 #whatThe.slide-right{
   animation: slideRight 0.15s ease-out forwards;
 }
-#gotext{
-  color:#6f6;
-  font-size:20px;
-  letter-spacing:2px;
-  text-align:right;
-  width: 100%;
+  #gameover #gotext {
+  color: #6f6;
+  font-size: 20px;
+  text-align: right;
+  background: transparent;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  letter-spacing: 2px;
+}
+body.gameover #instruction2 {
+  display: none;
 }
 
+body.gameover #gameover {
+  display: block !important;
+}
 @keyframes gb{
   50%{opacity:0}
 }
@@ -554,7 +551,9 @@ body.gameover #tapHere {
   <div id="gap"></div>
   <div id="answerrow"></div>
   <div id="answerblock"></div>
-
+<div id="gameover" style="display:none;">
+  <div id="gotext">Y_U K_NOT TH_ W_OR_DS<br><br><span style="color:#fff;">GAME OVER</span><br><br>* TAP OR PRESS ANY KEY TO RESTART *</div>
+</div>
 </div>
   <div id="status" style="display:none;"></div>
   
@@ -1110,10 +1109,11 @@ function handleAnswer(userSaysYes){
           updateScoreDisplay();
           
           if(fapoNumber >= 5 && fapoNumber > highScore){
-            document.body.classList.add('gameover'); 
-            setLocked(true);
-            return;
-          }
+  document.getElementById('gameover').style.display = 'block';
+  document.body.classList.add('gameover');
+  setLocked(true);
+  return;
+}
           
           newPuzzle();
         }, 800);
