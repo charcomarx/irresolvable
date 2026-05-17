@@ -562,6 +562,31 @@ var recentPuzzles = [];
 // Track active timeouts to prevent memory leaks
 var activeTimeouts = [];
 
+function forceCleanup() {
+  // Remove all "WHAT THE..." elements
+  var allWhatThe = document.querySelectorAll('#whatThe');
+  for(var i = 0; i < allWhatThe.length; i++) {
+    if(allWhatThe[i] && allWhatThe[i].remove) allWhatThe[i].remove();
+  }
+  
+  // Remove all animation classes from puzzle
+  puzzleEl.classList.remove('slide-left', 'slide-right', 'flashing', 'waiting', 'warning', 'strikethrough');
+  
+  // Force unlock if stuck
+  locked = false;
+  
+  // Clear all timeouts
+  clearAllTimeouts();
+}
+  function newPuzzle(){
+  forceCleanup(); // ADD THIS LINE
+  
+  if(dict.length === 0){
+    setTimeout(newPuzzle, 100);
+    return;
+  }
+  // ... rest of your code
+}
 function safeTimeout(fn, delay) {
   var id = setTimeout(function() {
     fn();
@@ -600,8 +625,8 @@ var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
 // Add this to reset the game when clicking on game over screen
-gameoverEl.addEventListener('click', function(){
-  clearAllTimeouts();
+  gameoverEl.addEventListener('click', function(){
+  forceCleanup(); // ADD THIS LINE
   gameoverEl.style.display = 'none';
   document.body.classList.remove('gameover');
   score = 0;
@@ -613,7 +638,6 @@ gameoverEl.addEventListener('click', function(){
   document.getElementById('highscoreNumber').textContent = '0';
   updateScoreDisplay();
   renderAnswers();
-  setLocked(false);
   newPuzzle();
 });
 
