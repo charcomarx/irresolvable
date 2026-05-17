@@ -1054,7 +1054,7 @@ if(userSaysYes === true && hasWord === false){
       updateScoreDisplay();
      
       // Add this check right after:
-  if(fapoNumber >= 3 && fapoNumber > highScore){
+  if(fapoNumber >= 5 && fapoNumber > highScore){
   gameoverEl.style.display = 'flex';
   document.body.classList.add('gameover');  // Add this line
   locked = true;
