@@ -1136,12 +1136,12 @@ function handleAnswer(userSaysYes){
         addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
         
         puzzleEl.classList.remove('flashing');
-        puzzleEl.classList.add('slide-right');
+        puzzleEl.classList.add('slide-left');
         
         safeTimeout(function(){
           puzzleEl.style.color = '#fff';
           puzzleEl.textContent = '';
-          puzzleEl.classList.remove('slide-right');
+          puzzleEl.classList.remove('slide-left');
           tabLevel = 0;
           score = 0;
           updateScoreDisplay();
