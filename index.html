@@ -33,7 +33,7 @@ html,body{
   padding:2px 4px;
   flex-shrink:0;
   font-size:60px;
-  letter-spacing:4px;
+  letter-spacing:10px;
   font-weight:bold;
 }
   #highscore{
@@ -932,22 +932,31 @@ function handleAnswer(userSaysYes){
     locked = true;
     puzzleEl.style.color = '#fff';
     puzzleEl.classList.add('flashing');
+    
     setTimeout(function(){
-      if(hasWord && flashedWord){
-        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
-      } else {
-        addAnswer(puzzle, null, 'white');
-      }
-      puzzleEl.classList.add('slide-left');
-      puzzleEl.classList.remove('flashing');
-      puzzleEl.style.color = '#fff';
-      puzzleEl.textContent = '';
-      if(!hasWord){
-        puzzleEl.classList.remove('strikethrough');
-      }
-      newPuzzle();
-      locked = false;
-    }, 1500);
+  if(hasWord && flashedWord){
+    addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), 'white');
+  } else {
+    addAnswer(puzzle, null, 'white');
+  }
+  
+  // Remove flashing, add slide animation (text stays visible)
+  puzzleEl.classList.remove('flashing');
+  puzzleEl.classList.add('slide-left');
+  
+  // Wait for slide animation to complete (800ms) BEFORE clearing
+  setTimeout(function(){
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    puzzleEl.classList.remove('slide-left');
+    if(!hasWord){
+      puzzleEl.classList.remove('strikethrough');
+    }
+    newPuzzle();
+    locked = false;
+  }, 800); // Match animation duration
+  
+}, 1500);
       
   } else {
     
@@ -966,7 +975,6 @@ if(userSaysYes === true && hasWord === false){
   var maxAttempts = 10;
   
   do {
-    // Generate weighted random fill
     filledPattern = puzzle;
     var existingChars = filledPattern.split('');
     while(filledPattern.indexOf('_') !== -1){
@@ -980,45 +988,51 @@ if(userSaysYes === true && hasWord === false){
   
   var prefix = '';
   for(var i = 0; i < tabLevel * TAB_SP; i++) prefix += ' ';
-  puzzleEl.textContent = prefix + filledPattern + '?';
+  
+  // Store the text we want to animate
+  var displayText = prefix + filledPattern + '?';
+  puzzleEl.textContent = displayText;
   puzzleEl.style.color = '#f66';
   puzzleEl.classList.add('flashing');
-  // Create "WHAT THE..." text above the puzzle
-var whatThe = document.createElement('div');
-whatThe.id = 'whatThe';
-whatThe.textContent = 'WHAT THE...';
-whatThe.style.position = 'absolute';
-whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 60) + 'px';
-whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
-whatThe.style.fontSize = '35px';
-whatThe.style.color = '#f66';
-whatThe.style.fontWeight = 'bold';
-whatThe.style.whiteSpace = 'nowrap';
-whatThe.style.pointerEvents = 'none';
-whatThe.style.zIndex = '200';
-whatThe.style.opacity = '1';
-document.body.appendChild(whatThe);
-
-// Add slide class to both puzzle and "WHAT THE..."
-puzzleEl.classList.add('slide-right');
-whatThe.classList.add('slide-right');
-
-// Remove "WHAT THE..." after animation
-setTimeout(function(){
-  whatThe.remove();
-}, 800);
-    puzzleEl.classList.remove('strikethrough'); 
-    addAnswer(puzzle, null, '#f66');
+  
+  // Create "WHAT THE..." text
+  var whatThe = document.createElement('div');
+  whatThe.id = 'whatThe';
+  whatThe.textContent = 'WHAT THE...';
+  whatThe.style.position = 'fixed';
+  whatThe.style.top = (puzzleEl.getBoundingClientRect().top - 50) + 'px';
+  whatThe.style.left = puzzleEl.getBoundingClientRect().left + 'px';
+  whatThe.style.fontSize = '35px';
+  whatThe.style.color = '#f66';
+  whatThe.style.fontWeight = 'bold';
+  whatThe.style.whiteSpace = 'nowrap';
+  whatThe.style.pointerEvents = 'none';
+  whatThe.style.zIndex = '200';
+  document.body.appendChild(whatThe);
+  
+  // Wait for flash to complete, THEN slide
+  setTimeout(function(){
     puzzleEl.classList.remove('flashing');
-    puzzleEl.style.color = '#fff';
-    puzzleEl.textContent = '';
-    tabLevel = 0;
-    score = 0;
-    updateScoreDisplay();
-    newPuzzle();
-    locked = false;
-  }, 1500);
+    puzzleEl.classList.add('slide-right');
+    whatThe.classList.add('slide-right');
+    
+    // Remove elements AFTER animation completes
+    setTimeout(function(){
+      whatThe.remove();
+      puzzleEl.classList.remove('strikethrough');
+      puzzleEl.classList.remove('slide-right');
+      puzzleEl.style.color = '#fff';
+      puzzleEl.textContent = '';
+      addAnswer(puzzle, null, '#f66');
+      tabLevel = 0;
+      score = 0;
+      updateScoreDisplay();
+      newPuzzle();
+      locked = false;
+    }, 800);
+  }, 500);
 }
+  
 else if(userSaysYes === false && hasWord === true){
       // Missed word - flash G, list GREEN
       var prefix = '';
@@ -1026,19 +1040,27 @@ else if(userSaysYes === false && hasWord === true){
       puzzleEl.textContent = prefix + flashedWord.toUpperCase() + '!';
       puzzleEl.style.color = '#6f6';  // G FLASH
       puzzleEl.classList.add('flashing');
-      setTimeout(function(){
-        addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');  // GREEN LIST
-        puzzleEl.classList.remove('flashing');
-        puzzleEl.style.color = '#fff';
-        puzzleEl.textContent = '';
-        tabLevel = 0;
-        puzzleEl.classList.add('slide-right');
-        // Reset score to 0 AFTER list is added
-        score = 0;
-        updateScoreDisplay();
-        newPuzzle();
-        locked = false;
-      }, 1500);
+      
+  setTimeout(function(){
+  addAnswer(flashedWord.toUpperCase(), 'https://en.wiktionary.org/wiki/' + flashedWord.toLowerCase(), '#6f6');
+  
+  // Remove flashing, add slide animation (text stays visible)
+  puzzleEl.classList.remove('flashing');
+  puzzleEl.classList.add('slide-right');
+  
+  // Wait for slide animation to complete (800ms) BEFORE clearing
+  setTimeout(function(){
+    puzzleEl.style.color = '#fff';
+    puzzleEl.textContent = '';
+    puzzleEl.classList.remove('slide-right');
+    tabLevel = 0;
+    score = 0;
+    updateScoreDisplay();
+    newPuzzle();
+    locked = false;
+  }, 800); // Match animation duration
+  
+}, 1500);
       
     } else {
       newPuzzle();
