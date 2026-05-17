@@ -271,7 +271,7 @@ font-size:20px;
   color:#6f6;
   font-size:20px;
   letter-spacing:2px;
-  text-align:center;
+  text-align:right;
 }
 
 @keyframes gb{
@@ -348,24 +348,21 @@ font-family: 'Arial', sans-serif;
   transition:all 0.1s ease;
   touch-action:manipulation;
   color:#fff;
-  border:2px solid #fff
+  border:2px solid #fff;
    pointer-events: auto;  /* Force clickable */
   position: relative;
   z-index: 1001;
 }
 
-}
 
 #buttons button#btnY{
   color:#6f6;
-  border:5px solid #000;
   pointer-events: auto !important;
   z-index: 9999 !important;
 }
 
 #buttons button#btnN{
   color:#f66;
-  border:5px solid #000;
    pointer-events: auto !important;
   z-index: 9999 !important;
 }
@@ -506,18 +503,19 @@ font-family: 'Arial', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-
+} 
 /* Prevent animation accumulation */
 .slide-left, .slide-right, .flashing {
   will-change: transform;
 }
-  /* When game over is visible, hide these elements */
+
+/* When game over is visible, hide these elements */
 body.gameover #buttons,
 body.gameover #instruction2,
 body.gameover #tapHere {
   display: none;
 }
-} 
+
 </style>
 </head>
 <body>
