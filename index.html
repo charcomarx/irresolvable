@@ -1057,7 +1057,9 @@ function handleAnswer(userSaysYes){
     
     renderPuzzle();
     setLocked(true);
-if(userSaysYes === true && hasWord === false){
+
+
+  if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
 
@@ -1100,11 +1102,11 @@ whatThe.style.pointerEvents = 'none';
 whatThe.style.zIndex = '200';
 document.body.appendChild(whatThe);
 
-// Set a timeout to force removal if animation fails
-var removeTimeout = setTimeout(function() {
+
+safeTimeout(function() {
   if(whatThe && whatThe.remove) whatThe.remove();
 }, 2000);
-
+    
   // FIX 3 (continued): Use safeTimeout here too
   safeTimeout(function(){
     puzzleEl.classList.remove('flashing');
