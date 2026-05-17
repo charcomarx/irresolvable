@@ -43,6 +43,7 @@ html,body{
   font-size:14px;
   color:#000;
   font-weight:bold;
+    
 }
   #puzzleline.strikethrough{
   text-decoration: line-through;
@@ -54,6 +55,7 @@ html,body{
   font-size:25px;
   color:#000;
   font-weight:bold;
+  font-family: 'Courier New', Courier, monospace;
 }
 #fapoLabel{ 
   position:fixed; 
@@ -71,6 +73,7 @@ html,body{
   font-size:25px; 
   color:#f66; 
   font-weight:bold;
+  font-family: 'Courier New', Courier, monospace;
   } 
   @keyframes loadingOnce{
   0%{ width: 0; }
@@ -288,7 +291,7 @@ font-size:20px;
   border:2px solid #fff;
   font-family:'Courier New',Courier,monospace;
   font-size:86px;
-  font-weight:900;
+  font-weight:bold;
   width:100px;
   height:110px;
   border-radius:8px;
@@ -531,7 +534,21 @@ var statusEl   = document.getElementById('status');
 var gameoverEl = document.getElementById('gameover');
 var scoreBox   = document.getElementById('scorebox');
 var fapoNumber = 0;
-
+// Add this to reset the game when clicking on game over screen
+gameoverEl.addEventListener('click', function(){
+  gameoverEl.style.display = 'none';
+  score = 0;
+  fapoNumber = 0;
+  highScore = 0;
+  answerHistory = [];
+  recentPuzzles = [];
+  document.getElementById('fapoNumber').textContent = '0';
+  document.getElementById('highscoreNumber').textContent = '0';
+  updateScoreDisplay();
+  renderAnswers();
+  locked = false;
+  newPuzzle();
+});
 
 function updateScoreDisplay(){
   if(score > 0){
@@ -966,7 +983,13 @@ function handleAnswer(userSaysYes){
 if(userSaysYes === true && hasWord === false){
   fapoNumber++;
   document.getElementById('fapoNumber').textContent = fapoNumber;
-  
+
+// Add this check right after:
+if(fapoNumber >= highScore * 3 && highScore > 0){
+  gameoverEl.style.display = 'flex';
+  locked = true;
+  return; // Stop further execution
+}
   var filledPattern;
   var attempts = 0;
   var maxAttempts = 10;
